@@ -1,6 +1,6 @@
 "use client";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ThumbsUp,
   Music,
@@ -17,6 +17,8 @@ import axios from "axios";
 import { useSession } from "next-auth/react";
 import ShareStreamButton from "../components/share";
 import { usePathname, useSearchParams } from "next/navigation";
+//@ts-ignore
+import YouTubePlayer from "youtube-player";
 
 interface StreamType {
   streamId: string;
@@ -39,22 +41,25 @@ export function StreamView({ creatorId }: { creatorId: string }) {
   const [queue, setQueue] = useState<StreamType[]>([]);
   const [loading, setLoading] = useState(false);
   const [sharableLink, setSharableLink] = useState("");
+  const videoPlayerRef = useRef(null);
   const pathname = usePathname();
   const isCreator = pathname.startsWith("/dashboard");
 
-  const  playingNow = async () =>{
+  const playingNow = async () => {
     localStorage.setItem("playingNowURL", currentSong.url);
     localStorage.setItem("playingNowTitle", currentSong.title);
-    await axios.delete(`/api/streams?streamId=${currentSong.id}`);
+    localStorage.setItem("playingNowId", currentSong.extractedId);
+    if (currentSong.id) {
+          await axios.delete(`/api/streams?streamId=${currentSong.id}`);
+    }
     await refreshStreams();
-  }
+  };
 
-useEffect(() => {
-  if (typeof window !== "undefined") {
-    setSharableLink(`${window.location.origin}/creator/${creatorId}`);
-  }
-}, [creatorId]);
-
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSharableLink(`${window.location.origin}/creator/${creatorId}`);
+    }
+  }, [creatorId]);
 
   async function refreshStreams() {
     const res = await axios.get(`/api/streams/?creatorId=${creatorId}`);
@@ -109,14 +114,34 @@ useEffect(() => {
     url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     title: "No Song Playing",
   };
-  
 
   const playingNowUrl =
     localStorage.getItem("playingNowURL") ??
     "https://www.youtube.com/embed/dQw4w9WgXcQ";
-  const embedUrl = playingNowUrl?.replace("watch?v=", "embed/") + "?autoplay=1";
+  const playingNowId = localStorage.getItem("playingNowId") || "dQw4w9WgXcQ";
   const playingNowTitle = localStorage.getItem("playingNowTitle");
-  
+
+  useEffect(() => {
+    if (!videoPlayerRef.current) {
+      return;
+    }
+    let player;
+
+    player = YouTubePlayer(videoPlayerRef.current);
+
+    player.loadVideoById(playingNowId);
+
+    player.playVideo();
+    function eventHandler(event: any) {
+      if (event.data === 0) {
+        playingNow();
+      }
+    }
+    player.on("stateChange", eventHandler);
+    return () => {
+      player.destroy();
+    }
+  }, [playingNowId, videoPlayerRef]);
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -173,7 +198,8 @@ useEffect(() => {
                 </div>
                 <div className="space-y-6">
                   <div className="aspect-video w-full bg-black rounded-lg overflow-hidden ring-1 ring-purple-500/20">
-                    <iframe
+                    <div ref={isCreator ? videoPlayerRef : null} className="w-full h-full">No video playing</div>
+                    {/* <iframe
                       width="100%"
                       height="100%"
                       src={
@@ -184,7 +210,7 @@ useEffect(() => {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       className="w-full h-full"
-                    />
+                    /> */}
                   </div>
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-xl text-purple-100">
@@ -193,7 +219,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <div>
-                  {isCreator && (
+                  {isCreator && queue.length !=0 && (
                     <button
                       className="mt-2 bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded-lg font-semibold"
                       onClick={playingNow}

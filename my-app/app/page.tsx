@@ -17,15 +17,15 @@ export default function Preview() {
         <p className="text-lg mb-6 text-purple-200">
           Transform your streams with interactive music requests.
         </p>
-        <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold">
+        <Link className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold" href={"/dashboard"}>
           Start Now
-        </button>
+        </Link>
       </div>
 
       {/* Features */}
       <div className="p-6 bg-gray-900">
         <h2 className="text-2xl font-bold text-center mb-8 text-purple-100">
-          Why Creators Love StreamTunes
+          Why Creators Love Tunz
         </h2>
         <div className="grid grid-cols-3 gap-6">
           <FeatureCard
