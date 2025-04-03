@@ -1,3 +1,5 @@
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 export const Button = ({
   type,
   className,
@@ -9,9 +11,9 @@ export const Button = ({
   type: "submit";
   className: string;
   children: React.ReactNode;
-  onClick: () => void;
-  variant: string;
-  size: string;
+  onClick: () => void; 
+  variant?: string;
+  size?: string;
 }) => {
   return (
       <button type={type} className={className} onClick={onClick}>
@@ -19,3 +21,4 @@ export const Button = ({
     </button>
   );
 };
+/* eslint-enable @typescript-eslint/no-unused-vars */

@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
       });
     return NextResponse.json({ message: "done" });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         message: "Error while downvoting",
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
         status: 403,
       }
     );
+    
   }
 }
 

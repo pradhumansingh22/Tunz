@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { StreamView } from "../components/StreamView";
 import axios from "axios";
 
-export default function () {
+export default function Dashboard() {
   const [creatorId, setCreatorId] = useState("");
 
   useEffect(() => {

@@ -1,7 +1,5 @@
 import { Appbar } from "./components/Appbar";
-import { useState } from "react";
 import {Music, Users, Zap } from "lucide-react";
-import { Redirect } from "./components/Redirect";
 import Link from "next/link";
 
 export default function Preview() {
@@ -12,12 +10,15 @@ export default function Preview() {
       {/* Hero */}
       <div className="bg-gradient-to-r from-purple-900 to-indigo-900 text-white px-6 py-12 text-center border-b border-gray-800">
         <h1 className="text-4xl font-bold mb-4">
-          Let Your Community Choose Your Stream's Soundtrack
+          Let Your Community Choose Your Stream&apos;s Soundtrack
         </h1>
         <p className="text-lg mb-6 text-purple-200">
           Transform your streams with interactive music requests.
         </p>
-        <Link className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold" href={"/dashboard"}>
+        <Link
+          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold"
+          href={"/dashboard"}
+        >
           Start Now
         </Link>
       </div>
@@ -76,10 +77,13 @@ export default function Preview() {
           Ready to Transform Your Streams?
         </h2>
         <p className="text-purple-200 mb-6">
-          Join thousands of creators who've enhanced their streams with
+          Join thousands of creators who&apos;ve enhanced their streams with
           interactive music
         </p>
-        <Link className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold" href={"/dashboard"} >
+        <Link
+          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg font-bold"
+          href={"/dashboard"}
+        >
           Create your space
         </Link>
       </div>
@@ -87,7 +91,8 @@ export default function Preview() {
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: any, title: String, desc: String }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FeatureCard({ icon, title, desc }: { icon: any, title: string, desc: string }) {
   return (
     <div className="p-4 bg-gray-800 rounded-lg text-center border border-gray-700 hover:border-purple-500 transition-colors">
       <div className="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -99,7 +104,7 @@ function FeatureCard({ icon, title, desc }: { icon: any, title: String, desc: St
   );
 }
 
-function Step({ number, title, desc }:{ number: String, title: String, desc: String }) {
+function Step({ number, title, desc }:{ number: string, title: string, desc: string }) {
   return (
     <div className="bg-gray-900 p-6 rounded-lg border border-gray-700">
       <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center mb-3 font-bold">

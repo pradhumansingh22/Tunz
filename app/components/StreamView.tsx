@@ -1,5 +1,6 @@
 "use client";
 import type React from "react";
+
 import { useEffect, useRef, useState } from "react";
 import {
   ThumbsUp,
@@ -16,9 +17,10 @@ import { Button } from "../components/ui/button";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import ShareStreamButton from "../components/share";
-import { usePathname, useSearchParams } from "next/navigation";
-//@ts-ignore
+import { usePathname} from "next/navigation";
+//@ts-expect-error fghfgh
 import YouTubePlayer from "youtube-player";
+import Link from "next/link";
 
 interface StreamType {
   streamId: string;
@@ -45,15 +47,26 @@ export function StreamView({ creatorId }: { creatorId: string }) {
   const pathname = usePathname();
   const isCreator = pathname.startsWith("/dashboard");
 
-  const playingNow = async () => {
-    localStorage.setItem("playingNowURL", currentSong.url);
-    localStorage.setItem("playingNowTitle", currentSong.title);
-    localStorage.setItem("playingNowId", currentSong.extractedId);
-    if (currentSong.id) {
-          await axios.delete(`/api/streams?streamId=${currentSong.id}`);
-    }
-    await refreshStreams();
-  };
+const playingNow = async () => {
+  if (queue.length === 0) return;
+
+  const nextSong = queue.length > 1 ? queue[1] : queue[0]; 
+
+  setQueue((prevQueue) =>
+    prevQueue.length > 1 ? prevQueue.slice(1) : prevQueue
+  ); 
+
+  localStorage.setItem("playingNowURL", nextSong?.url || "");
+  localStorage.setItem("playingNowTitle", nextSong?.title || "");
+  localStorage.setItem("playingNowId", nextSong?.extractedId || "");
+
+  if (queue.length > 1) {
+    await axios.delete(`/api/streams?streamId=${queue[0].id}`);
+  }
+
+  await refreshStreams();
+};
+
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -74,7 +87,7 @@ export function StreamView({ creatorId }: { creatorId: string }) {
     refreshStreams();
     const interval = setInterval(refreshStreams, 3000);
     return () => clearInterval(interval);
-  }, []);
+  });
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -115,9 +128,7 @@ export function StreamView({ creatorId }: { creatorId: string }) {
     title: "No Song Playing",
   };
 
-  const playingNowUrl =
-    localStorage.getItem("playingNowURL") ??
-    "https://www.youtube.com/embed/dQw4w9WgXcQ";
+ 
   const playingNowId = localStorage.getItem("playingNowId") || "dQw4w9WgXcQ";
   const playingNowTitle = localStorage.getItem("playingNowTitle");
 
@@ -125,13 +136,13 @@ export function StreamView({ creatorId }: { creatorId: string }) {
     if (!videoPlayerRef.current) {
       return;
     }
-    let player;
 
-    player = YouTubePlayer(videoPlayerRef.current);
+    const player = YouTubePlayer(videoPlayerRef.current);
 
     player.loadVideoById(playingNowId);
 
     player.playVideo();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function eventHandler(event: any) {
       if (event.data === 0) {
         playingNow();
@@ -140,7 +151,7 @@ export function StreamView({ creatorId }: { creatorId: string }) {
     player.on("stateChange", eventHandler);
     return () => {
       player.destroy();
-    }
+    };
   }, [playingNowId, videoPlayerRef]);
 
   return (
@@ -149,12 +160,12 @@ export function StreamView({ creatorId }: { creatorId: string }) {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <a href="/" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <Music className="h-6 w-6 text-purple-400" />
                 <span className="text-xl font-bold text-purple-400">
                   StreamTunes
                 </span>
-              </a>
+              </Link>
               <div className="hidden md:flex items-center gap-6">
                 <NavLink icon={<Home className="w-4 h-4" />} text="Home" />
                 <NavLink
@@ -321,12 +332,12 @@ export function StreamView({ creatorId }: { creatorId: string }) {
 
 function NavLink({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <a
+    <Link
       href="/"
       className="flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-colors"
     >
       {icon}
       <span>{text}</span>
-    </a>
+    </Link>
   );
 }
