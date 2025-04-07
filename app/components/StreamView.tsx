@@ -50,22 +50,20 @@ export function StreamView({ creatorId }: { creatorId: string }) {
 const playingNow = async () => {
   if (queue.length === 0) return;
 
-  const nextSong = queue.length > 1 ? queue[1] : queue[0]; 
-
-  setQueue((prevQueue) =>
-    prevQueue.length > 1 ? prevQueue.slice(1) : prevQueue
-  ); 
+  const nextSong = queue[1];
+  setQueue((prevQueue) => prevQueue.slice(1)); 
 
   localStorage.setItem("playingNowURL", nextSong?.url || "");
   localStorage.setItem("playingNowTitle", nextSong?.title || "");
   localStorage.setItem("playingNowId", nextSong?.extractedId || "");
 
-  if (queue.length > 1) {
-    await axios.delete(`/api/streams?streamId=${queue[0].id}`);
+  if (currentSong.id) {
+    await axios.delete(`/api/streams?streamId=${currentSong.id}`);
   }
 
   await refreshStreams();
 };
+
 
 
   useEffect(() => {

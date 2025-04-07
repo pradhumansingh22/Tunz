@@ -3,35 +3,21 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export const Appbar = () => {
-    const session = useSession();
+  const session = useSession();
+  const user = session.data?.user;
     return (
-      <div className="w-full">
-        {/* Navigation */}
-        <div className="bg-gradient-to-r from-purple-900 to-indigo-900 p-4 flex justify-between items-center border-b border-gray-800">
-          <div className="text-purple-100 font-bold text-xl">Tunz</div>
-          <div className="flex gap-4 items-center">
-            <button className="text-purple-100 hover:text-purple-300">
-              Features
+      <div className="w-full bg-transparent">
+        <div className="flex justify-between pt-4">
+          <div className="flex items-center ml-10">
+            <div className="h-8 w-8 rounded-full bg-[#2E3F3C] font-semibold text-white flex justify-center items-center ml-5 mx-2">
+              T
+            </div>
+            <div className="text-[#2E3F3C] font-bold">TunZ</div>
+          </div>
+          <div className="mr-5">
+            <button className="rounded-2xl text-[#364e49] text-xs font-semibold bg-white border-gray-800 px-6 py-2 mr-10 border">
+              {user ? "Login" : "Log Out"}
             </button>
-            <button className="text-purple-100 hover:text-purple-300">
-              How It Works
-            </button>
-            {session.data?.user && (
-              <button
-                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg font-semibold"
-                onClick={() => signOut()}
-              >
-                Sign Out
-              </button>
-            )}
-            {!session.data?.user && (
-              <button
-                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded-lg font-semibold"
-                onClick={() => signIn()}
-              >
-                Sign In
-              </button>
-            )}
           </div>
         </div>
       </div>
