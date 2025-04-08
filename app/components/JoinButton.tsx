@@ -2,16 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import { RoomModal } from "./room-modal";
+import { useState } from "react";
 
 export function JoinButton({ isLoggedIn }: { isLoggedIn: boolean }) {
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-
+  const handleClick = () => {
+    isLoggedIn ? setIsOpen(true) : router.push("/api/auth/signin")
+  }
   return (
-    <Button
-      className="bg-[#2E3F3C] text-white rounded-full px-6 py-2 mr-3 hover:bg-[#69a197]"
-      onClick={() => router.push(isLoggedIn ? "/dashboard" : "/signin")}
-    >
-      Let's Go
-    </Button>
+    <div>
+      <Button
+        className="bg-[#2E3F3C] text-white rounded-full px-6 py-2 mr-3 hover:bg-[#69a197]"
+        onClick={handleClick}
+      >
+        Let's Go
+      </Button>
+      <RoomModal isOpen={isOpen} onClose={()=>{setIsOpen(false)}}/>
+    </div>
   );
 }

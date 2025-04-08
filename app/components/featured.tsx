@@ -3,7 +3,6 @@ import MusicPlayer from "./ui/music-player";
 export const Featured = () => {
   return (
     <div className="flex flex-col lg:flex-row justify-between px-20 py-10 gap-10 w-full">
-      {/* Left: Music Cards - take more space */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 flex-[3]">
         <MusicPlayer
           id="song-1"
@@ -21,14 +20,13 @@ export const Featured = () => {
         />
         <MusicPlayer
           id="song-3"
-          songCover="jalalobilalo.jpg"
-          songTitle="Jalalo Bilalo"
-          artist="Rahein Gharana"
-          songUrl="/audio/jalalobilalo.mp3"
+          songCover="snooze.jpg"
+          songTitle="Snooze"
+          artist="SZA"
+          songUrl="/audio/snooze.mp3"
         />
       </div>
 
-      {/* Right: Weekly Popular - take less space */}
       <div className="flex-[1] max-w-xs mt-6 lg:mt-0">
         <h2 className="text-2xl font-semibold text-zinc-800 mb-6">
           Featured Songs
@@ -61,8 +59,8 @@ export const Featured = () => {
               3
             </div>
             <div>
-              <p className="font-semibold">Jalalo Bilalo</p>
-              <p className="text-sm text-zinc-500">19,23,812 played</p>
+              <p className="font-semibold">Snooze</p>
+              <p className="text-sm text-zinc-500">1,048,000,000 played</p>
             </div>
           </li>
         </ol>

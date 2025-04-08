@@ -7,13 +7,15 @@ export const Button = ({
   onClick,
   variant,
   size,
+  disabled,
 }: {
   type?: "submit";
   className: string;
   children: React.ReactNode;
   onClick: () => void; 
   variant?: string;
-  size?: string;
+    size?: string;
+    disabled?: boolean;
 }) => {
   return (
       <button type={type} className={className} onClick={onClick}>
