@@ -3,7 +3,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Play, Pause } from "lucide-react";
 
-// Global variables to sync between all players
 let currentlyPlayingAudio: HTMLAudioElement | null = null;
 let currentlyPlayingId: string | null = null;
 let setPlayingStates: Record<string, (playing: boolean) => void> = {};

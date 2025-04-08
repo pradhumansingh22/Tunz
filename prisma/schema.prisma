@@ -19,6 +19,15 @@ model User {
   provider Provider
   streams  Stream[]
   upvotes  Upvotes[]
+  messaged Message[]
+}
+
+model Room {
+  id        String    @id @default(uuid())
+  creatorId String    @unique
+  roomId    String    @default("")
+  messages  Message[]
+  streams   Stream[]
 }
 
 model Stream {
@@ -33,6 +42,8 @@ model Stream {
   upvotes     Upvotes[]
   userId      String
   user        User       @relation(fields: [userId], references: [id])
+  roomId      String
+  room        Room       @relation(fields: [roomId], references: [id])
 }
 
 model Upvotes {
@@ -45,6 +56,15 @@ model Upvotes {
   @@unique([userId, streamId])
 }
 
+model Message {
+  id        String   @id @default(uuid())
+  text      String
+  createdAt DateTime @default(now())
+  userId    String
+  roomId    String
+  user      User     @relation(fields: [userId], references: [id])
+  room      Room     @relation(fields: [roomId], references: [id])
+}
 
 enum StreamType {
   Youtube

@@ -3,12 +3,10 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { useRoomIdStore } from "../lib/store/roomIdStore";
+import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface RoomModalProps {
   isOpen: boolean;
@@ -16,26 +14,49 @@ interface RoomModalProps {
 }
 
 export function RoomModal({ isOpen, onClose }: RoomModalProps) {
-  const [roomId, setRoomId] = useState("");
-  const [createRoomId, setCreateRoomId] = useState("");
+  const {roomId, setRoomId } = useRoomIdStore();
+  const [joinRoomId, setjoinRoomId] = useState("");
   const [mode, setMode] = useState<"select" | "create" | "join">("select");
+  const [value, setValue] = useState("");
+  const router = useRouter();
 
-  const handleCreateRoom = () => {
-    // Handle room creation logic here
-    console.log("Creating new room with ID:", createRoomId);
+  const handleCreateRoom = async () => {
+  
+    const response = await axios.post("api/room", { roomId });
+    if (response.data) {
+      const createdRoomId = response.data.createdRoomId;
+      router.push(`room/${createdRoomId}`);
+    } else {
+      console.error("Some error occured")
+    }
     onClose();
   };
 
-  const handleJoinRoom = () => {
-    // Handle room joining logic here
-    console.log("Joining room with ID:", roomId);
+  const handleJoinRoom = async() => {
+    const response = await axios.get(`/api/room/?roomId=${joinRoomId}`);
+    if (response.data.room) {
+      const id = response.data.room.id;
+      router.push(`/room/${id}`);
+    } else {
+      console.error("Some error occured");
+    }
+
     onClose();
   };
 
   const resetView = () => {
     setMode("select");
     setRoomId("");
-    setCreateRoomId("");
+    setjoinRoomId("");
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let rawInput = e.target.value.replace(/_/g, "");
+    let formatted = rawInput.match(/.{1,3}/g)?.join("_") || "";
+
+    setValue(formatted);
+    setRoomId(formatted);
+    setjoinRoomId(formatted);
   };
 
   return (
@@ -99,15 +120,18 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
                 space.
               </p>
               <input
+                spellCheck={false}
                 placeholder="Enter a Room ID"
-                value={createRoomId}
-                onChange={(e) => setCreateRoomId(e.target.value)}
+                value={value}
+                onChange={(e) => {
+                  handleInputChange(e);
+                }}
                 className="border border-gray-600 rounded-md px-2 py-2"
               />
               <div className="flex flex-col gap-3 mt-2">
                 <Button
                   onClick={handleCreateRoom}
-                  disabled={!createRoomId.trim()}
+                  disabled={!joinRoomId.trim()}
                   className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-white py-2 rounded-lg disabled:opacity-50"
                 >
                   Create Room
@@ -128,9 +152,12 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
                 Enter a room ID to join an existing musical space.
               </p>
               <input
+                spellCheck={false}
                 placeholder="Enter Room ID"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
+                value={value}
+                onChange={(e) => {
+                  handleInputChange(e);
+                }}
                 className="px-2 py-2 border border-gray-600 rounded-md"
               />
               <div className="flex flex-col gap-3 mt-2">

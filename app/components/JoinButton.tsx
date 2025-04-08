@@ -14,7 +14,7 @@ export function JoinButton({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <div>
       <Button
-        className="bg-[#2E3F3C] text-white rounded-full px-6 py-2 mr-3 hover:bg-[#69a197]"
+        className="bg-[#2E3F3C] text-white rounded-full px-6 py-2 mr-3 hover:bg-[#69a197] transition duration-300"
         onClick={handleClick}
       >
         Let's Go
