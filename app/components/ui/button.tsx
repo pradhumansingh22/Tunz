@@ -1,4 +1,4 @@
-
+"use client"
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export const Button = ({
   type,
@@ -8,7 +8,7 @@ export const Button = ({
   variant,
   size,
 }: {
-  type: "submit";
+  type?: "submit";
   className: string;
   children: React.ReactNode;
   onClick: () => void; 
