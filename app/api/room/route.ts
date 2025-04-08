@@ -20,21 +20,21 @@ export async function POST(req: NextRequest) {
         creatorId: user.id,
       },
     });
-    const createdRoomId = room.id;
+    console.log("room id", room.roomId);
     return NextResponse.json({
       status: 200,
       message: "Room Created",
-      createdRoomId,
-      isCreator:true
+      room,
+      isCreator: true,
     });
   } catch (err) {
+    console.log(err);
     return NextResponse.json({
       status: 400,
       message: "Error while creating room",
     });
   }
 }
-
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession();
@@ -64,3 +64,27 @@ export async function GET(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession();
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email: session?.user?.email ?? "",
+    },
+  });
+  if (!user) return NextResponse.json("Unauthenticated", { status: 403 });
+
+  const id = req.nextUrl.searchParams.get("id") || "";
+  try {
+    await prismaClient.room.delete({
+      where: {
+        id,
+      },
+    });
+    if (!id)
+      return NextResponse.json({ message: "Invalid room id ", status: 400 });
+
+    return NextResponse.json("Room Deleted", { status: 200 });
+  } catch (error) {
+    return NextResponse.json("Could not delete room", { status: 400 });
+  }
+}

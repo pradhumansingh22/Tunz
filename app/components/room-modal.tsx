@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { useRoomIdStore } from "../lib/store/roomIdStore";
+import { useRoomIdStore, useRoomStore } from "../lib/store/roomIdStore";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -14,25 +14,27 @@ interface RoomModalProps {
 }
 
 export function RoomModal({ isOpen, onClose }: RoomModalProps) {
-  const {roomId, setRoomId } = useRoomIdStore();
+  const { roomId, setRoomId } = useRoomIdStore();
+  const { setRoom } = useRoomStore();
   const [joinRoomId, setjoinRoomId] = useState("");
   const [mode, setMode] = useState<"select" | "create" | "join">("select");
   const [value, setValue] = useState("");
   const router = useRouter();
 
   const handleCreateRoom = async () => {
-  
     const response = await axios.post("api/room", { roomId });
     if (response.data) {
-      const createdRoomId = response.data.createdRoomId;
+      const room = response.data.room;
+      setRoom(room);
+      const createdRoomId = response.data.room.id;
       router.push(`room/${createdRoomId}`);
     } else {
-      console.error("Some error occured")
+      console.error("Some error occured");
     }
     onClose();
   };
 
-  const handleJoinRoom = async() => {
+  const handleJoinRoom = async () => {
     const response = await axios.get(`/api/room/?roomId=${joinRoomId}`);
     if (response.data.room) {
       const id = response.data.room.id;

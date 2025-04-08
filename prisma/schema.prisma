@@ -24,7 +24,7 @@ model User {
 
 model Room {
   id        String    @id @default(uuid())
-  creatorId String    @unique
+  creatorId String
   roomId    String    @default("")
   messages  Message[]
   streams   Stream[]
@@ -41,9 +41,9 @@ model Stream {
   active      Boolean    @default(true)
   upvotes     Upvotes[]
   userId      String
-  user        User       @relation(fields: [userId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   roomId      String
-  room        Room       @relation(fields: [roomId], references: [id])
+  room        Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 model Upvotes {
@@ -62,8 +62,8 @@ model Message {
   createdAt DateTime @default(now())
   userId    String
   roomId    String
-  user      User     @relation(fields: [userId], references: [id])
-  room      Room     @relation(fields: [roomId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
 
 enum StreamType {
