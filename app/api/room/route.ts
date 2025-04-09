@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   });
   const { roomId } = await req.json();
 
-  if (!user) return NextResponse.json("Unauthenticated", { status: 403 });
+  if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
 
   try {
     const room = await prismaClient.room.create({
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       email: session?.user?.email ?? "",
     },
   });
-  if (!user) return NextResponse.json("Unauthenticated", { status: 403 });
+  if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
 
   const roomId = req.nextUrl.searchParams.get("roomId") || "";
   try {
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
     });
     console.log("Here is the room id", roomId);
     if (!roomId || !room)
-      return NextResponse.json({ message: "Invalid room id ", status: 400 });
+      return NextResponse.json({ message: "Invalid room id ", status: 403 });
 
     const isAdmin = room.creatorId === user.id;
 
@@ -71,7 +71,7 @@ export async function DELETE(req: NextRequest) {
       email: session?.user?.email ?? "",
     },
   });
-  if (!user) return NextResponse.json("Unauthenticated", { status: 403 });
+  if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
 
   const id = req.nextUrl.searchParams.get("id") || "";
   try {
@@ -81,7 +81,7 @@ export async function DELETE(req: NextRequest) {
       },
     });
     if (!id)
-      return NextResponse.json({ message: "Invalid room id ", status: 400 });
+      return NextResponse.json({ message: "Invalid room id ", status: 403 });
 
     return NextResponse.json("Room Deleted", { status: 200 });
   } catch (error) {

@@ -1,15 +1,10 @@
-"use client";
+"use-client"
+import MusicRoomDashboard from "@/app/components/roomDashboard";
 
-import { useRoomStore } from "@/app/lib/store/roomIdStore";
-import { useParams } from "next/navigation";
-
-export default function RoomPage() {
-  const { room } = useRoomStore();
+export default function Page() {
   return (
-    <div>
-      <div>{room.id}</div>
-      <div>{room.creatorId}</div>
-      <div>{room.roomId}</div>
-    </div>
+    <main className="h-screen w-screen bg-[#dbe4d0] p-4">
+      <MusicRoomDashboard />
+    </main>
   );
 }

@@ -8,11 +8,13 @@ export const Button = ({
   variant,
   size,
   disabled,
+  onKeyDown
 }: {
   type?: "submit";
   className: string;
   children: React.ReactNode;
-  onClick: () => void; 
+    onClick: () => void; 
+    onKeyDown?: () => void;
   variant?: string;
     size?: string;
     disabled?: boolean;

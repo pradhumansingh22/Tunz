@@ -4,12 +4,14 @@ export const Input = ({
   value,
   onChange,
   className,
+  onKeyDown
 }: {
-  type: string;
+  type?: string;
   placeholder: string;
   value: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onChange: (e: any) => void;
+    onChange: (e: any) => void;
+    onKeyDown?:(e: any) => void;
   className: string;
 }) => {
   return (
@@ -20,6 +22,7 @@ export const Input = ({
       onChange={
         onChange
       }
+      onKeyDown={onKeyDown}
       className={className}
     />
   );
