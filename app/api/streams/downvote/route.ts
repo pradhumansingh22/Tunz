@@ -1,4 +1,4 @@
-import { prismaClient } from "@/app/lib/db";
+import { prismaClient } from "@/db/db";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -26,14 +26,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const data = upvoteSchema.parse(await req.json());
-      await prismaClient.upvotes.delete({
-          where: {
-              userId_streamId: {
-                  userId: user.id,
-                  streamId: data.streamId
-              }
-          }
-      });
+    await prismaClient.upvotes.delete({
+      where: {
+        userId_streamId: {
+          userId: user.id,
+          streamId: data.streamId,
+        },
+      },
+    });
     return NextResponse.json({ message: "done" });
   } catch (error) {
     console.log(error);
@@ -45,7 +45,5 @@ export async function POST(req: NextRequest) {
         status: 403,
       }
     );
-    
   }
 }
-

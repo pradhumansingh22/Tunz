@@ -1,4 +1,4 @@
-import { prismaClient } from "@/app/lib/db";
+import { prismaClient } from "@/db/db";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 //@ts-ignore
@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         url,
         extractedId,
-            type: "Youtube",
-        title:videoDetails.title,
+        type: "Youtube",
+        title: videoDetails.title,
         smallImg:
           thumbnails.length > 1
             ? thumbnails[thumbnails.length - 2].url
@@ -52,14 +52,14 @@ export async function POST(req: NextRequest) {
           "https://nypost.com/wp-content/uploads/sites/2/2021/04/zoe-roth-12.jpg?quality=75&strip=all&w=744",
       },
     });
-      return NextResponse.json({
-        ...stream,
-        id: stream.id,
-        haveUpvoted: false,
-        upvotes: 0,
-      });
+    return NextResponse.json({
+      ...stream,
+      id: stream.id,
+      haveUpvoted: false,
+      upvotes: 0,
+    });
   } catch (error) {
-      console.error(error);
-      return NextResponse.json("Could not add song",{ status: 400 });
+    console.error(error);
+    return NextResponse.json("Could not add song", { status: 400 });
   }
 }

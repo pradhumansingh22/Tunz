@@ -1,6 +1,6 @@
-import { prismaClient } from "@/app/lib/db";
+import { prismaClient } from "@/db/db";
 import { getServerSession } from "next-auth";
-import {NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   const session = await getServerSession();
