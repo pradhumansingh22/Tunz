@@ -7,8 +7,9 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { useRoomStore } from "../lib/store/roomIdStore";
+import axios from "axios";
 
-// Types
 interface Song {
   id: string;
   title: string;
@@ -28,7 +29,7 @@ interface ChatMessage {
 }
 
 export default function MusicRoomDashboard() {
-  // State for song queue
+  const { room } = useRoomStore();
   const [songQueue, setSongQueue] = useState<Song[]>([
     {
       id: "1",
@@ -72,7 +73,6 @@ export default function MusicRoomDashboard() {
     },
   ]);
 
-  // State for current playing song
   const [currentSong, setCurrentSong] = useState<Song>({
     id: "0",
     title: "Stairway to Heaven",
@@ -84,7 +84,6 @@ export default function MusicRoomDashboard() {
     likedByMe: true,
   });
 
-  // State for chat messages
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -106,32 +105,22 @@ export default function MusicRoomDashboard() {
     },
   ]);
 
-  // State for input fields
   const [songLink, setSongLink] = useState("");
   const [chatMessage, setChatMessage] = useState("");
 
-  // Handle adding a song
-  const handleAddSong = () => {
+  const handleAddSong = async() => {
     if (!songLink.trim()) return;
-
-    // In a real app, you would parse the YouTube link and get song details
-    // For now, we'll just add a placeholder song
-    const newSong: Song = {
-      id: `${songQueue.length + 1}`,
-      title: `New Song ${songQueue.length + 1}`,
-      artist: "Unknown Artist",
-      duration: "3:30",
-      addedBy: "You",
-      thumbnail: "/placeholder.svg?height=60&width=60",
-      likes: 0,
-      likedByMe: false,
-    };
-
-    setSongQueue([...songQueue, newSong]);
+    try {
+      const res = await axios.post('/api/songs', { roomId: room.id, url: songLink });
+      if (res.data) {
+        console.log("song added to the queue")
+      }
+    } catch (error) {
+      console.log("Error adding song", error);
+    }
     setSongLink("");
   };
 
-  // Handle sending a chat message
   const handleSendMessage = () => {
     if (!chatMessage.trim()) return;
 
@@ -146,21 +135,16 @@ export default function MusicRoomDashboard() {
     setChatMessage("");
   };
 
-  // Handle playing the next song
   const handlePlayNext = () => {
     if (songQueue.length === 0) return;
 
-    // Sort songs by likes (highest first)
     const sortedQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
 
-    // Set the most liked song as the current song
     setCurrentSong(sortedQueue[0]);
 
-    // Remove the played song from the queue
     setSongQueue(songQueue.filter((song) => song.id !== sortedQueue[0].id));
   };
 
-  // Handle liking a song
   const handleLikeSong = (songId: string) => {
     setSongQueue(
       songQueue.map((song) => {
