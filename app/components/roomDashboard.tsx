@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Music, Send, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -9,6 +9,8 @@ import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useRoomStore } from "../lib/store/roomIdStore";
 import axios from "axios";
+import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 interface Song {
   id: string;
@@ -22,14 +24,49 @@ interface Song {
 }
 
 interface ChatMessage {
-  id: string;
   user: string;
   message: string;
-  timestamp: Date;
+  time: Date | string;
 }
 
 export default function MusicRoomDashboard() {
+  const params = useParams();
+  const roomId = params?.roomId;
   const { room } = useRoomStore();
+  const session = useSession();
+  const userName = session.data?.user?.name;
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8080/room/${roomId}/messages`)
+      .then((response) => {
+        setChatMessages((prev) => [...prev, ...response.data.messages]);
+      });
+    const newSocket = new WebSocket("ws://localhost:8080");
+    newSocket.onopen = () => {
+      console.log("Connection established to the WebSocket server.");
+      newSocket.send(
+        JSON.stringify({
+          type: "join",
+          roomId: roomId,
+        })
+      );
+    };
+
+    newSocket.onmessage = (message) => {
+      const parsed = JSON.parse(message.data);
+      if (parsed.type === "chat") {
+        setChatMessages((prev) => [...prev, parsed.messageData]);
+      }
+    };
+    setSocket(newSocket);
+    return () => {
+      newSocket.close();
+      setSocket(null);
+    };
+  }, [roomId]);
+
   const [songQueue, setSongQueue] = useState<Song[]>([
     {
       id: "1",
@@ -84,36 +121,20 @@ export default function MusicRoomDashboard() {
     likedByMe: true,
   });
 
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      user: "Alex",
-      message: "Hey everyone! Welcome to the music room.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5),
-    },
-    {
-      id: "2",
-      user: "Jamie",
-      message: "I added Hotel California to the queue!",
-      timestamp: new Date(Date.now() - 1000 * 60 * 3),
-    },
-    {
-      id: "3",
-      user: "Taylor",
-      message: "Great choice! I love that song.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 2),
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const [songLink, setSongLink] = useState("");
   const [chatMessage, setChatMessage] = useState("");
 
-  const handleAddSong = async() => {
+  const handleAddSong = async () => {
     if (!songLink.trim()) return;
     try {
-      const res = await axios.post('/api/songs', { roomId: room.id, url: songLink });
+      const res = await axios.post("/api/songs", {
+        roomId: room.id,
+        url: songLink,
+      });
       if (res.data) {
-        console.log("song added to the queue")
+        console.log("song added to the queue");
       }
     } catch (error) {
       console.log("Error adding song", error);
@@ -124,15 +145,17 @@ export default function MusicRoomDashboard() {
   const handleSendMessage = () => {
     if (!chatMessage.trim()) return;
 
-    const newMessage: ChatMessage = {
-      id: `${chatMessages.length + 1}`,
-      user: "You",
-      message: chatMessage,
-      timestamp: new Date(),
-    };
-
-    setChatMessages([...chatMessages, newMessage]);
-    setChatMessage("");
+    socket?.send(
+      JSON.stringify({
+        type: "chat",
+        roomId: roomId,
+        messageData: {
+          user: userName,
+          message: chatMessage,
+          time: new Date().toISOString(),
+        },
+      })
+    );
   };
 
   const handlePlayNext = () => {
@@ -161,8 +184,12 @@ export default function MusicRoomDashboard() {
   };
 
   // Format timestamp for chat messages
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatTime = (date: Date | string) => {
+    const parsedDate = new Date(date);
+    return parsedDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Sort songs by likes
@@ -302,26 +329,27 @@ export default function MusicRoomDashboard() {
 
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-4">
-              {chatMessages.map((msg) => (
-                <div key={msg.id} className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
-                        {msg.user.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-semibold text-sm text-[#2E3F3C]">
-                      {msg.user}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {formatTime(msg.timestamp)}
-                    </span>
+              {chatMessages.length > 0 &&
+                chatMessages.map((msg) => (
+                  <div key={msg.message} className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
+                          {msg.user ? msg.user.charAt(0) : "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-semibold text-sm text-[#2E3F3C]">
+                        {msg.user}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {msg.time ? formatTime(new Date(msg.time)) : "??:??"}
+                      </span>
+                    </div>
+                    <p className="ml-8 text-sm mt-1 text-[#2E3F3C]/80">
+                      {msg.message}
+                    </p>
                   </div>
-                  <p className="ml-8 text-sm mt-1 text-[#2E3F3C]/80">
-                    {msg.message}
-                  </p>
-                </div>
-              ))}
+                ))}
             </div>
           </ScrollArea>
 

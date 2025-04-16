@@ -1,4 +1,4 @@
-import { prismaClient } from "@/db/db";
+import { prismaClient } from "@/app/lib/db";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 
