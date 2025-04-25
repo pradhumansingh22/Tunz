@@ -18,7 +18,7 @@ interface Song {
   artist: string;
   duration: string;
   addedBy: string;
-  thumbnail: string;
+  bigImg: string;
   likes: number;
   likedByMe: boolean;
 }
@@ -32,7 +32,6 @@ interface ChatMessage {
 export default function MusicRoomDashboard() {
   const params = useParams();
   const roomId = params?.roomId;
-  const { room } = useRoomStore();
   const session = useSession();
   const userName = session.data?.user?.name;
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -43,6 +42,7 @@ export default function MusicRoomDashboard() {
       .then((response) => {
         setChatMessages((prev) => [...prev, ...response.data.messages]);
       });
+    
     const newSocket = new WebSocket("ws://localhost:8080");
     newSocket.onopen = () => {
       console.log("Connection established to the WebSocket server.");
@@ -56,8 +56,19 @@ export default function MusicRoomDashboard() {
 
     newSocket.onmessage = (message) => {
       const parsed = JSON.parse(message.data);
-      if (parsed.type === "chat") {
-        setChatMessages((prev) => [...prev, parsed.messageData]);
+      switch (parsed.type) {
+        case "chat":
+          setChatMessages((prev) => [...prev, parsed.messageData]);
+          break;
+        
+        case "addSong":
+          console.log("Song Data:", parsed.messageData);
+          setSongQueue((prev) => [...prev, parsed.messageData]);
+          break;
+        
+        case "songQueue":
+          //Handle showing the new Queue
+          break;
       }
     };
     setSocket(newSocket);
@@ -74,7 +85,7 @@ export default function MusicRoomDashboard() {
       artist: "Queen",
       duration: "5:55",
       addedBy: "Alex",
-      thumbnail: "/placeholder.svg?height=60&width=60",
+      bigImg: "/placeholder.svg?height=60&width=60",
       likes: 3,
       likedByMe: false,
     },
@@ -84,7 +95,7 @@ export default function MusicRoomDashboard() {
       artist: "Eagles",
       duration: "6:30",
       addedBy: "Jamie",
-      thumbnail: "/placeholder.svg?height=60&width=60",
+      bigImg: "/placeholder.svg?height=60&width=60",
       likes: 5,
       likedByMe: true,
     },
@@ -94,7 +105,7 @@ export default function MusicRoomDashboard() {
       artist: "John Lennon",
       duration: "3:04",
       addedBy: "Taylor",
-      thumbnail: "/placeholder.svg?height=60&width=60",
+      bigImg: "/placeholder.svg?height=60&width=60",
       likes: 2,
       likedByMe: false,
     },
@@ -104,7 +115,7 @@ export default function MusicRoomDashboard() {
       artist: "Michael Jackson",
       duration: "4:54",
       addedBy: "Jordan",
-      thumbnail: "/placeholder.svg?height=60&width=60",
+      bigImg: "/placeholder.svg?height=60&width=60",
       likes: 4,
       likedByMe: true,
     },
@@ -116,7 +127,7 @@ export default function MusicRoomDashboard() {
     artist: "Led Zeppelin",
     duration: "8:02",
     addedBy: "Sam",
-    thumbnail: "/placeholder.svg?height=200&width=200",
+    bigImg: "/placeholder.svg?height=200&width=200",
     likes: 7,
     likedByMe: true,
   });
@@ -130,11 +141,16 @@ export default function MusicRoomDashboard() {
     if (!songLink.trim()) return;
     try {
       const res = await axios.post("/api/songs", {
-        roomId: room.id,
+        roomId: roomId,
         url: songLink,
       });
+
       if (res.data) {
-        console.log("song added to the queue");
+        socket?.send(JSON.stringify({
+          type: "addSong",
+          roomId,
+          messageData: res.data
+        }));
       }
     } catch (error) {
       console.log("Error adding song", error);
@@ -156,6 +172,7 @@ export default function MusicRoomDashboard() {
         },
       })
     );
+    setChatMessage("");
   };
 
   const handlePlayNext = () => {
@@ -196,93 +213,102 @@ export default function MusicRoomDashboard() {
   const sortedSongQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
 
   return (
-    <div className="w-full max-w-7xl h-[calc(100vh-2rem)] bg-[#e3e7d7] rounded-xl overflow-hidden border border-[#2E3F3C] shadow-lg">
+    <div className="w-full h-full bg-[#e3e7d7] rounded-xl overflow-hidden border border-[#2E3F3C] shadow-lg">
       <div className="grid grid-cols-1 md:grid-cols-12 h-full">
         {/* Queue Section - Left */}
-        <div className="md:col-span-3 border-r border-[#2E3F3C] flex flex-col h-full">
-          <div className="p-4 border-b border-[#2E3F3C]">
-            <h2 className="text-xl font-bold text-[#2E3F3C]">Song Queue</h2>
+        <div className="md:col-span-3 border-b md:border-b-0 md:border-r border-[#2E3F3C] flex flex-col h-[40vh] sm:h-[30vh] md:h-full overflow-hidden">
+          <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
+            <h2 className="text-lg sm:text-xl font-bold text-[#2E3F3C]">
+              Song Queue
+            </h2>
           </div>
 
-          <ScrollArea className="flex-1">
-            <div className="p-4 space-y-3">
-              {sortedSongQueue.length > 0 ? (
-                sortedSongQueue.map((song) => (
-                  <div
-                    key={song.id}
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
-                  >
-                    <div className="flex-shrink-0 w-10 h-10 rounded overflow-hidden">
-                      <img
-                        src={song.thumbnail || "/placeholder.svg"}
-                        alt={song.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate text-[#2E3F3C]">
-                        {song.title}
-                      </h4>
-                      <p className="text-xs text-[#2E3F3C]/70 truncate">
-                        {song.artist}
-                      </p>
-                      <div className="flex justify-between text-xs text-[#2E3F3C]/60">
-                        <span>{song.addedBy}</span>
-                        <span>{song.duration}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleLikeSong(song.id)}
-                      className="flex items-center gap-1 text-xs"
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                {sortedSongQueue.length > 0 ? (
+                  sortedSongQueue.map((song) => (
+                    <div
+                      key={song.id}
+                      className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
                     >
-                      <Heart
-                        className={`h-4 w-4 ${
-                          song.likedByMe
-                            ? "fill-[#2E3F3C] text-[#2E3F3C]"
-                            : "text-[#2E3F3C]"
-                        }`}
-                      />
-                      <span className="text-[#2E3F3C]">{song.likes}</span>
-                    </button>
+                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
+                        <img
+                          src={
+                            song.bigImg || "/placeholder.svg?height=60&width=60"
+                          }
+                          alt={song.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
+                          {song.title}
+                        </h4>
+                        <p className="text-xs text-[#2E3F3C]/70 break-words">
+                          {song.artist}
+                        </p>
+                        <div className="flex justify-between text-xs text-[#2E3F3C]/60">
+                          <span className="truncate">{song.addedBy}</span>
+                          <span>{song.duration}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleLikeSong(song.id)}
+                        className="flex items-center gap-1 text-xs"
+                      >
+                        <Heart
+                          className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                            song.likedByMe
+                              ? "fill-[#2E3F3C] text-[#2E3F3C]"
+                              : "text-[#2E3F3C]"
+                          }`}
+                        />
+                        <span className="text-[#2E3F3C]">{song.likes}</span>
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
+                    <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+                    <p className="text-sm">Queue is empty</p>
+                    <p className="text-xs">Add songs to get started</p>
                   </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
-                  <Music className="h-8 w-8 mb-2" />
-                  <p className="text-sm">Queue is empty</p>
-                  <p className="text-xs">Add songs to get started</p>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
 
         {/* Main Content - Middle */}
-        <div className="md:col-span-6 flex flex-col h-full">
-          {/* Current Song */}
-          <div className="flex-1 flex flex-col items-center justify-center p-6 gap-4">
-            <Card className="w-full max-w-sm md:max-w-xs lg:max-w-sm flex items-center justify-center bg-[#2E3F3C]/10 border-[#2E3F3C] rounded-md p-4">
+        <div className="md:col-span-6 flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
+          <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 overflow-auto">
+            {/* Current Song */}
+            <Card className="w-full max-w-xs sm:max-w-sm flex items-center justify-center bg-[#2E3F3C]/10 border-[#2E3F3C] rounded-md p-3 sm:p-4">
               <div className="flex flex-col items-center w-full">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 mb-4 rounded-md overflow-hidden">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 mb-3 sm:mb-4 rounded-md overflow-hidden">
                   <img
-                    src={currentSong.thumbnail || "/placeholder.svg"}
+                    src={
+                      currentSong.bigImg ||
+                      "/placeholder.svg?height=200&width=200"
+                    }
                     alt={currentSong.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h3 className="text-xl font-bold text-[#2E3F3C] text-center">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-[#2E3F3C] text-center break-words">
                   {currentSong.title}
                 </h3>
-                <p className="text-[#2E3F3C]/80 text-center">
+                <p className="text-sm sm:text-base text-[#2E3F3C]/80 text-center">
                   {currentSong.artist}
                 </p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap justify-center">
-                  <p className="text-sm text-[#2E3F3C]/60">
+                  <p className="text-xs sm:text-sm text-[#2E3F3C]/60">
                     Added by {currentSong.addedBy}
                   </p>
                   <div className="flex items-center gap-1">
                     <Heart
-                      className={`h-4 w-4 ${
+                      className={`h-3 w-3 sm:h-4 sm:w-4 ${
                         currentSong.likedByMe
                           ? "fill-[#2E3F3C] text-[#2E3F3C]"
                           : "text-[#2E3F3C]"
@@ -296,24 +322,26 @@ export default function MusicRoomDashboard() {
               </div>
             </Card>
 
+            {/* Next Button */}
             <Button
               onClick={handlePlayNext}
-              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-4 py-2 rounded-md flex items-center"
+              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
             >
-              <SkipForward className="mr-2 h-4 w-4" />
+              <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
               PLAY NEXT
             </Button>
 
-            <div className="w-full max-w-md flex gap-2">
+            {/* Add Song Input */}
+            <div className="w-full max-w-md flex flex-col sm:flex-row gap-2">
               <Input
                 placeholder="Paste the yt link here..."
                 value={songLink}
                 onChange={(e) => setSongLink(e.target.value)}
-                className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 rounded-md px-3 py-2 w-full"
+                className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 rounded-md px-3 py-1.5 sm:py-2 w-full text-sm"
               />
               <Button
                 onClick={handleAddSong}
-                className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] whitespace-nowrap px-4 py-2 rounded-md"
+                className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md w-full sm:w-auto text-sm"
               >
                 Add Song
               </Button>
@@ -322,51 +350,63 @@ export default function MusicRoomDashboard() {
         </div>
 
         {/* Chat Section - Right */}
-        <div className="md:col-span-3 border-l border-[#2E3F3C] flex flex-col h-full">
-          <div className="p-4 border-b border-[#2E3F3C]">
-            <h2 className="text-xl font-bold text-[#2E3F3C]">Room Chat</h2>
+        <div className="md:col-span-3 border-t md:border-t-0 md:border-l border-[#2E3F3C] flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
+          <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
+            <h2 className="text-lg sm:text-xl font-bold text-[#2E3F3C]">
+              Room Chat
+            </h2>
           </div>
 
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {chatMessages.length > 0 &&
-                chatMessages.map((msg) => (
-                  <div key={msg.message} className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
-                          {msg.user ? msg.user.charAt(0) : "?"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-sm text-[#2E3F3C]">
-                        {msg.user}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {msg.time ? formatTime(new Date(msg.time)) : "??:??"}
-                      </span>
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                {chatMessages.length > 0 ? (
+                  [...chatMessages].reverse().map((msg, index) => (
+                    <div key={index} className="flex flex-col">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                          <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
+                            {msg.user ? msg.user.charAt(0) : "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-xs sm:text-sm text-[#2E3F3C]">
+                          {msg.user}
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-[#2E3F3C]/60">
+                          {msg.time ? formatTime(msg.time) : "??:??"}
+                        </span>
+                      </div>
+                      <p className="ml-7 sm:ml-8 text-xs sm:text-sm mt-0.5 sm:mt-1 text-[#2E3F3C]/80 break-words">
+                        {msg.message}
+                      </p>
                     </div>
-                    <p className="ml-8 text-sm mt-1 text-[#2E3F3C]/80">
-                      {msg.message}
-                    </p>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
+                    <Send className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+                    <p className="text-sm">No messages yet</p>
+                    <p className="text-xs">Start the conversation</p>
                   </div>
-                ))}
-            </div>
-          </ScrollArea>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
-          <div className="p-4 border-t border-[#2E3F3C] flex gap-2">
+          {/* Chat Input */}
+          <div className="p-3 sm:p-4 border-t border-[#2E3F3C] flex gap-2 flex-shrink-0">
             <Input
               placeholder="Type message..."
               value={chatMessage}
               onChange={(e) => setChatMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-              className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 px-2"
+              className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 px-2 py-1.5 sm:py-2 w-full text-sm rounded-md"
             />
             <Button
               onClick={handleSendMessage}
               size="icon"
-              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] h-10 w-10 rounded-md flex items-center justify-center"
+              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] h-8 sm:h-10 w-8 sm:w-10 rounded-md flex items-center justify-center flex-shrink-0"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>

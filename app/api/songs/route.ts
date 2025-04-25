@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 //@ts-ignore
 import youtubesearchapi from "youtube-search-api";
+import { search } from "youtube-search-without-api-key";
+
 
 const urlRegex =
   /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
@@ -27,11 +29,17 @@ export async function POST(req: NextRequest) {
   if (!isValidUrl) return NextResponse.json("Invalid URL", { status: 401 });
 
   const extractedId = url.split("?v=")[1];
-  const videoDetails = await youtubesearchapi.GetVideoDetails(extractedId);
-  const thumbnails = videoDetails.thumbnail.thumbnails;
-  thumbnails.sort((a: { width: number }, b: { width: number }) =>
-    a.width < b.width ? -1 : 1
-  );
+  const results = await search(extractedId);
+  if (!results || results.length === 0) {
+    throw new Error("No results found for the given query.");
+  }
+
+   const video = results[0];
+   const videoTitle = video.title;
+   const bigImg =
+     video.snippet.thumbnails?.high?.url ||
+     "https://www.insticc.org/node/TechnicalProgram/56e7352809eb881d8c5546a9bbf8406e.png";
+ 
 
   try {
     const stream = await prismaClient.stream.create({
@@ -41,22 +49,18 @@ export async function POST(req: NextRequest) {
         url,
         extractedId,
         type: "Youtube",
-        title: videoDetails.title,
-        smallImg:
-          thumbnails.length > 1
-            ? thumbnails[thumbnails.length - 2].url
-            : thumbnails[thumbnails.length - 1].url ??
-              "https://nypost.com/wp-content/uploads/sites/2/2021/04/zoe-roth-12.jpg?quality=75&strip=all&w=744",
-        bigImg:
-          thumbnails[thumbnails.length - 1].url ??
-          "https://nypost.com/wp-content/uploads/sites/2/2021/04/zoe-roth-12.jpg?quality=75&strip=all&w=744",
+        id: crypto.randomUUID(),
+        title: videoTitle,
+        bigImg: bigImg,
       },
     });
+    
     return NextResponse.json({
       ...stream,
       id: stream.id,
       haveUpvoted: false,
       upvotes: 0,
+      message: "Added Stream",
     });
   } catch (error) {
     console.error(error);
