@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   if (!session || !user) {
     return NextResponse.json("Unauthenticated", { status: 401 });
   }
-  const { roomId, url } = await req.json();
+  const { roomId, url, addedBy } = await req.json();
   if (!roomId || !url)
     return NextResponse.json("Invalid Room Id or Song Url", { status: 403 });
 
@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
 
   if (!isValidUrl) return NextResponse.json("Invalid URL", { status: 401 });
 
-  const extractedId = url.split("?v=")[1];
-  const results = await search(extractedId);
+  const videoId = url.split("?v=")[1];
+  const results = await search(videoId);
   if (!results || results.length === 0) {
     throw new Error("No results found for the given query.");
   }
@@ -42,25 +42,14 @@ export async function POST(req: NextRequest) {
  
 
   try {
-    const stream = await prismaClient.stream.create({
-      data: {
-        roomId: roomId,
-        userId: user.id,
-        url,
-        extractedId,
-        type: "Youtube",
-        id: crypto.randomUUID(),
-        title: videoTitle,
-        bigImg: bigImg,
-      },
-    });
-    
     return NextResponse.json({
-      ...stream,
-      id: stream.id,
-      haveUpvoted: false,
-      upvotes: 0,
       message: "Added Stream",
+      id: crypto.randomUUID(),
+      title: videoTitle,
+      bigImg: bigImg,
+      url,
+      videoId,
+      addedBy
     });
   } catch (error) {
     console.error(error);

@@ -7,12 +7,13 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { useRoomStore } from "../lib/store/roomIdStore";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
+import { LoadingButton } from "./ui/loader";
+import { MusicPlayer } from "./musicPlayer";
 
-interface Song {
+export interface Song {
   id: string;
   title: string;
   artist: string;
@@ -21,6 +22,7 @@ interface Song {
   bigImg: string;
   likes: number;
   likedByMe: boolean;
+  url: string;
 }
 
 interface ChatMessage {
@@ -35,14 +37,41 @@ export default function MusicRoomDashboard() {
   const session = useSession();
   const userName = session.data?.user?.name;
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [songLink, setSongLink] = useState("");
+  const [chatMessage, setChatMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [songQueue, setSongQueue] = useState<Song[]>([]);
+
+  const [currentSong, setCurrentSong] = useState<Song>({
+    id: "0",
+    title: "WAVY (OFFICIAL VIDEO) KARAN AUJLA",
+    artist: "Karan Aujla",
+    duration: "4:32",
+    addedBy: "Jhon",
+    bigImg:
+      "https://i.ytimg.com/vi/XTp5jaRU3Ws/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCZ8dL9zdBliipvrxmEAXIIsCB3UA",
+    likes: 7,
+    likedByMe: true,
+    url: "https://www.youtube.com/watch?v=XTp5jaRU3Ws",
+  });
 
   useEffect(() => {
-    axios
-      .get(`http://localhost:8080/room/${roomId}/messages`)
-      .then((response) => {
-        setChatMessages((prev) => [...prev, ...response.data.messages]);
-      });
-    
+    const getData = async () => {
+      const [chatResponse, songResponse] = await Promise.all([
+        axios.get(`http://localhost:8080/room/${roomId}/messages`),
+        axios.get(`http://localhost:8080/room/${roomId}/songs`),
+      ]);
+
+      if (chatResponse.data.errors || songResponse.data.error) {
+        console.error("an error occurred");
+      }
+
+      setChatMessages((prev) => [...prev, ...chatResponse.data.messages]);
+      setSongQueue((prev) => [...prev, ...songResponse.data.songs]);
+    };
+    getData();
+
     const newSocket = new WebSocket("ws://localhost:8080");
     newSocket.onopen = () => {
       console.log("Connection established to the WebSocket server.");
@@ -60,12 +89,12 @@ export default function MusicRoomDashboard() {
         case "chat":
           setChatMessages((prev) => [...prev, parsed.messageData]);
           break;
-        
+
         case "addSong":
           console.log("Song Data:", parsed.messageData);
           setSongQueue((prev) => [...prev, parsed.messageData]);
           break;
-        
+
         case "songQueue":
           //Handle showing the new Queue
           break;
@@ -78,84 +107,30 @@ export default function MusicRoomDashboard() {
     };
   }, [roomId]);
 
-  const [songQueue, setSongQueue] = useState<Song[]>([
-    {
-      id: "1",
-      title: "Bohemian Rhapsody",
-      artist: "Queen",
-      duration: "5:55",
-      addedBy: "Alex",
-      bigImg: "/placeholder.svg?height=60&width=60",
-      likes: 3,
-      likedByMe: false,
-    },
-    {
-      id: "2",
-      title: "Hotel California",
-      artist: "Eagles",
-      duration: "6:30",
-      addedBy: "Jamie",
-      bigImg: "/placeholder.svg?height=60&width=60",
-      likes: 5,
-      likedByMe: true,
-    },
-    {
-      id: "3",
-      title: "Imagine",
-      artist: "John Lennon",
-      duration: "3:04",
-      addedBy: "Taylor",
-      bigImg: "/placeholder.svg?height=60&width=60",
-      likes: 2,
-      likedByMe: false,
-    },
-    {
-      id: "4",
-      title: "Billie Jean",
-      artist: "Michael Jackson",
-      duration: "4:54",
-      addedBy: "Jordan",
-      bigImg: "/placeholder.svg?height=60&width=60",
-      likes: 4,
-      likedByMe: true,
-    },
-  ]);
-
-  const [currentSong, setCurrentSong] = useState<Song>({
-    id: "0",
-    title: "Stairway to Heaven",
-    artist: "Led Zeppelin",
-    duration: "8:02",
-    addedBy: "Sam",
-    bigImg: "/placeholder.svg?height=200&width=200",
-    likes: 7,
-    likedByMe: true,
-  });
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-
-  const [songLink, setSongLink] = useState("");
-  const [chatMessage, setChatMessage] = useState("");
-
   const handleAddSong = async () => {
     if (!songLink.trim()) return;
     try {
+      setLoading(true);
       const res = await axios.post("/api/songs", {
         roomId: roomId,
         url: songLink,
+        addedBy:userName
       });
 
       if (res.data) {
-        socket?.send(JSON.stringify({
-          type: "addSong",
-          roomId,
-          messageData: res.data
-        }));
+        socket?.send(
+          JSON.stringify({
+            type: "addSong",
+            roomId,
+            messageData: res.data,
+          })
+        );
       }
     } catch (error) {
       console.log("Error adding song", error);
     }
     setSongLink("");
+    setLoading(false);
   };
 
   const handleSendMessage = () => {
@@ -200,7 +175,6 @@ export default function MusicRoomDashboard() {
     );
   };
 
-  // Format timestamp for chat messages
   const formatTime = (date: Date | string) => {
     const parsedDate = new Date(date);
     return parsedDate.toLocaleTimeString([], {
@@ -209,7 +183,6 @@ export default function MusicRoomDashboard() {
     });
   };
 
-  // Sort songs by likes
   const sortedSongQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
 
   return (
@@ -223,60 +196,59 @@ export default function MusicRoomDashboard() {
             </h2>
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-                {sortedSongQueue.length > 0 ? (
-                  sortedSongQueue.map((song) => (
-                    <div
-                      key={song.id}
-                      className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
-                        <img
-                          src={
-                            song.bigImg || "/placeholder.svg?height=60&width=60"
-                          }
-                          alt={song.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
-                          {song.title}
-                        </h4>
-                        <p className="text-xs text-[#2E3F3C]/70 break-words">
-                          {song.artist}
-                        </p>
-                        <div className="flex justify-between text-xs text-[#2E3F3C]/60">
-                          <span className="truncate">{song.addedBy}</span>
-                          <span>{song.duration}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleLikeSong(song.id)}
-                        className="flex items-center gap-1 text-xs"
-                      >
-                        <Heart
-                          className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                            song.likedByMe
-                              ? "fill-[#2E3F3C] text-[#2E3F3C]"
-                              : "text-[#2E3F3C]"
-                          }`}
-                        />
-                        <span className="text-[#2E3F3C]">{song.likes}</span>
-                      </button>
+          <div className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {" "}
+            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+              {sortedSongQueue.length > 0 ? (
+                sortedSongQueue.map((song) => (
+                  <div
+                    key={song.id}
+                    className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
+                      <img
+                        src={
+                          song.bigImg || "/placeholder.svg?height=60&width=60"
+                        }
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
-                    <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
-                    <p className="text-sm">Queue is empty</p>
-                    <p className="text-xs">Add songs to get started</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
+                        {song.title}
+                      </h4>
+                      <p className="text-xs text-[#2E3F3C]/70 break-words">
+                        {song.artist}
+                      </p>
+                      <div className="flex justify-between text-xs text-[#2E3F3C]/60">
+                        <span className="truncate">{song.addedBy}</span>
+                        <span>{song.duration}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleLikeSong(song.id)}
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Heart
+                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                          song.likedByMe
+                            ? "fill-[#2E3F3C] text-[#2E3F3C]"
+                            : "text-[#2E3F3C]"
+                        }`}
+                      />
+                      <span className="text-[#2E3F3C]">{song.likes}</span>
+                    </button>
                   </div>
-                )}
-              </div>
-            </ScrollArea>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
+                  <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+                  <p className="text-sm">Queue is empty.</p>
+                  <p className="text-xs">Add songs to get started.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -318,6 +290,7 @@ export default function MusicRoomDashboard() {
                       {currentSong.likes}
                     </span>
                   </div>
+                  <MusicPlayer currentSong={currentSong}/>
                 </div>
               </div>
             </Card>
@@ -339,12 +312,9 @@ export default function MusicRoomDashboard() {
                 onChange={(e) => setSongLink(e.target.value)}
                 className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 rounded-md px-3 py-1.5 sm:py-2 w-full text-sm"
               />
-              <Button
-                onClick={handleAddSong}
-                className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md w-full sm:w-auto text-sm"
-              >
+              <LoadingButton onClick={handleAddSong} loading={loading}>
                 Add Song
-              </Button>
+              </LoadingButton>
             </div>
           </div>
         </div>
@@ -390,9 +360,9 @@ export default function MusicRoomDashboard() {
                 )}
               </div>
             </ScrollArea>
-          </div>
+          </div> 
 
-          {/* Chat Input */}
+          {/* Chat Input */} 
           <div className="p-3 sm:p-4 border-t border-[#2E3F3C] flex gap-2 flex-shrink-0">
             <Input
               placeholder="Type message..."
