@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Song } from "./roomDashboard";
 import dynamic from "next/dynamic";
 
@@ -9,27 +9,40 @@ const ReactPlayer = dynamic(() => import("react-player"), {
 });
 
 interface PlayerProps {
-    currentSong:Song
+  currentSong: Song;
+  songState: string;
+  handlePlayPause: (currentState: string) => void;
 }
-export  function MusicPlayer({ currentSong }: PlayerProps) {
-  const playerRef = useRef<typeof ReactPlayer>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
 
-  const handlePlay = () => setIsPlaying(true);
-  const handlePause = () => setIsPlaying(false);
+export function MusicPlayer({
+  currentSong,
+  songState,
+  handlePlayPause,
+}: PlayerProps) {
+  const playerRef = useRef<typeof ReactPlayer>(null);
+  const [currentSongState, setCurrentSongState] = useState(songState);
+
+  const handlePlay = () => {
+    handlePlayPause("play");
+    setCurrentSongState("play");
+  };
+  const handlePause = () => {
+    handlePlayPause("pause");
+    setCurrentSongState("pause");
+  };
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
       <ReactPlayer
         ref={playerRef}
         url={currentSong.url}
-        playing={isPlaying}
+        playing={currentSongState === "play" ? true : false}
         controls={false}
         width="0"
         height="0"
       />
       <div className="flex gap-2 mt-2">
-        {isPlaying ? (
+        {songState === "play" ? (
           <button
             onClick={handlePause}
             className="ext-[#2E3F3C] hover:border  px-4 py-1.5 text-sm rounded-md"

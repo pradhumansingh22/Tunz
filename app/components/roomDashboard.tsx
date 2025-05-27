@@ -42,7 +42,7 @@ export default function MusicRoomDashboard() {
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [songQueue, setSongQueue] = useState<Song[]>([]);
-
+  const [songState, setSongState] = useState("play");
   const [currentSong, setCurrentSong] = useState<Song>({
     id: "0",
     title: "WAVY (OFFICIAL VIDEO) KARAN AUJLA",
@@ -96,8 +96,12 @@ export default function MusicRoomDashboard() {
           break;
 
         case "songQueue":
-          //Handle showing the new Queue
+          // What the heck am I supposed to do here
+          // Handle showing the new Queue
           break;
+
+        case "playPause":
+          setSongState(parsed.messageData);
       }
     };
     setSocket(newSocket);
@@ -114,7 +118,7 @@ export default function MusicRoomDashboard() {
       const res = await axios.post("/api/songs", {
         roomId: roomId,
         url: songLink,
-        addedBy:userName
+        addedBy: userName,
       });
 
       if (res.data) {
@@ -148,6 +152,18 @@ export default function MusicRoomDashboard() {
       })
     );
     setChatMessage("");
+  };
+
+  const handlePlayPause = (currentState: string) => {
+    socket?.send(
+      JSON.stringify({
+        type: "playPause",
+        roomId: roomId,
+        messageData: {
+          currentState,
+        },
+      })
+    );
   };
 
   const handlePlayNext = () => {
@@ -290,7 +306,11 @@ export default function MusicRoomDashboard() {
                       {currentSong.likes}
                     </span>
                   </div>
-                  <MusicPlayer currentSong={currentSong}/>
+                  <MusicPlayer
+                    currentSong={currentSong}
+                    songState={songState}
+                    handlePlayPause={handlePlayPause}
+                  />
                 </div>
               </div>
             </Card>
@@ -360,9 +380,9 @@ export default function MusicRoomDashboard() {
                 )}
               </div>
             </ScrollArea>
-          </div> 
+          </div>
 
-          {/* Chat Input */} 
+          {/* Chat Input */}
           <div className="p-3 sm:p-4 border-t border-[#2E3F3C] flex gap-2 flex-shrink-0">
             <Input
               placeholder="Type message..."

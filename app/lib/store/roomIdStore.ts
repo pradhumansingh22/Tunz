@@ -6,22 +6,22 @@ interface roomIdStore {
 }
 
 export interface Stream {
-  id: String;
-  url: String;
-  extractedId: String;
-  title: String;
-  smallImg: String;
-  bigImg: String;
+  id: string;
+  url: string;
+  extractedId: string;
+  title: string;
+  smallImg: string;
+  bigImg: string;
   active: Boolean;
   upvotes: [];
-  userId: String;
-  roomId: String;
+  userId: string;
+  roomId: string;
 }
 
 export interface room {
-  id: String;
-  creatorId: String;
-  roomId: String;
+  id: string;
+  creatorId: string;
+  roomId: string;
   messages: string[];
   streams: Stream[];
 }
