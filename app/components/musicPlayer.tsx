@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Song } from "./roomDashboard";
 import dynamic from "next/dynamic";
 
@@ -10,25 +10,20 @@ const ReactPlayer = dynamic(() => import("react-player"), {
 
 interface PlayerProps {
   currentSong: Song;
-  songState: string;
-  handlePlayPause: (currentState: string) => void;
 }
 
 export function MusicPlayer({
   currentSong,
-  songState,
-  handlePlayPause,
 }: PlayerProps) {
   const playerRef = useRef<typeof ReactPlayer>(null);
-  const [currentSongState, setCurrentSongState] = useState(songState);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const handlePlay = () => {
-    handlePlayPause("play");
-    setCurrentSongState("play");
+    setIsPlaying(true);
+    
   };
   const handlePause = () => {
-    handlePlayPause("pause");
-    setCurrentSongState("pause");
+    setIsPlaying(false);
   };
 
   return (
@@ -36,13 +31,13 @@ export function MusicPlayer({
       <ReactPlayer
         ref={playerRef}
         url={currentSong.url}
-        playing={currentSongState === "play" ? true : false}
+        playing={isPlaying}
         controls={false}
         width="0"
         height="0"
       />
       <div className="flex gap-2 mt-2">
-        {songState === "play" ? (
+        {isPlaying ? (
           <button
             onClick={handlePause}
             className="ext-[#2E3F3C] hover:border  px-4 py-1.5 text-sm rounded-md"

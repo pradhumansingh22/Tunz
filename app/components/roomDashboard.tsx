@@ -7,11 +7,12 @@ import { Input } from "./ui/input";
 import { Card } from "./ui/card";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
+import axios from "axios";
+
 
 export interface Song {
   id: string;
@@ -42,7 +43,6 @@ export default function MusicRoomDashboard() {
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [songQueue, setSongQueue] = useState<Song[]>([]);
-  const [songState, setSongState] = useState("play");
   const [currentSong, setCurrentSong] = useState<Song>({
     id: "0",
     title: "WAVY (OFFICIAL VIDEO) KARAN AUJLA",
@@ -99,9 +99,11 @@ export default function MusicRoomDashboard() {
           // What the heck am I supposed to do here
           // Handle showing the new Queue
           break;
-
-        case "playPause":
-          setSongState(parsed.messageData);
+        
+        case "playNext":
+          console.log("playing next song");
+          handlePlayNext();
+          break;
       }
     };
     setSocket(newSocket);
@@ -120,7 +122,17 @@ export default function MusicRoomDashboard() {
         url: songLink,
         addedBy: userName,
       });
+      setSongQueue((prevQueue) => {
+        if (prevQueue.length === 0) return prevQueue;
+        console.log("hi");
 
+        const sortedQueue = [...prevQueue].sort((a, b) => b.likes - a.likes);
+        const nextSong = sortedQueue[0];
+
+        setCurrentSong(nextSong);
+
+        return prevQueue.filter((song) => song.id !== nextSong.id);
+      });
       if (res.data) {
         socket?.send(
           JSON.stringify({
@@ -154,27 +166,33 @@ export default function MusicRoomDashboard() {
     setChatMessage("");
   };
 
-  const handlePlayPause = (currentState: string) => {
-    socket?.send(
-      JSON.stringify({
-        type: "playPause",
-        roomId: roomId,
-        messageData: {
-          currentState,
-        },
-      })
-    );
-  };
 
   const handlePlayNext = () => {
-    if (songQueue.length === 0) return;
+    console.log("hello");
+    setSongQueue((prevQueue) => {
+      if (prevQueue.length === 0) return prevQueue;
+      console.log("hi");
 
-    const sortedQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
+      const sortedQueue = [...prevQueue].sort((a, b) => b.likes - a.likes);
+      const nextSong = sortedQueue[0];
 
-    setCurrentSong(sortedQueue[0]);
+      setCurrentSong(nextSong);
 
-    setSongQueue(songQueue.filter((song) => song.id !== sortedQueue[0].id));
+      return prevQueue.filter((song) => song.id !== nextSong.id);
+    });
   };
+  
+
+  const playNextMessage = () => {
+    socket?.send(JSON.stringify({
+      type: "playNext",
+      roomId: roomId,
+      messageData: {
+        message: "Play next song"
+      }
+    }))
+  };
+
 
   const handleLikeSong = (songId: string) => {
     setSongQueue(
@@ -308,8 +326,6 @@ export default function MusicRoomDashboard() {
                   </div>
                   <MusicPlayer
                     currentSong={currentSong}
-                    songState={songState}
-                    handlePlayPause={handlePlayPause}
                   />
                 </div>
               </div>
@@ -317,7 +333,8 @@ export default function MusicRoomDashboard() {
 
             {/* Next Button */}
             <Button
-              onClick={handlePlayNext}
+              onClick={playNextMessage
+              }
               className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
             >
               <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
