@@ -13,14 +13,13 @@ interface PlayerProps {
 }
 
 export function MusicPlayer({
-  currentSong,
+  currentSong
 }: PlayerProps) {
   const playerRef = useRef<typeof ReactPlayer>(null);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handlePlay = () => {
     setIsPlaying(true);
-    
   };
   const handlePause = () => {
     setIsPlaying(false);

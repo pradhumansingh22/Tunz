@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
+import { useIsCreator } from "../lib/store/roomIdStore";
 import axios from "axios";
 
 
@@ -34,6 +35,7 @@ interface ChatMessage {
 
 export default function MusicRoomDashboard() {
   const params = useParams();
+  const { isCreator } = useIsCreator();
   const roomId = params?.roomId;
   const session = useSession();
   const userName = session.data?.user?.name;
@@ -97,9 +99,10 @@ export default function MusicRoomDashboard() {
 
         case "songQueue":
           // What the heck am I supposed to do here
+          // Hair dryer and all the essentials are here.
           // Handle showing the new Queue
           break;
-        
+
         case "playNext":
           console.log("playing next song");
           handlePlayNext();
@@ -122,6 +125,7 @@ export default function MusicRoomDashboard() {
         url: songLink,
         addedBy: userName,
       });
+
       setSongQueue((prevQueue) => {
         if (prevQueue.length === 0) return prevQueue;
         console.log("hi");
@@ -166,7 +170,6 @@ export default function MusicRoomDashboard() {
     setChatMessage("");
   };
 
-
   const handlePlayNext = () => {
     console.log("hello");
     setSongQueue((prevQueue) => {
@@ -181,18 +184,18 @@ export default function MusicRoomDashboard() {
       return prevQueue.filter((song) => song.id !== nextSong.id);
     });
   };
-  
 
   const playNextMessage = () => {
-    socket?.send(JSON.stringify({
-      type: "playNext",
-      roomId: roomId,
-      messageData: {
-        message: "Play next song"
-      }
-    }))
+    socket?.send(
+      JSON.stringify({
+        type: "playNext",
+        roomId: roomId,
+        messageData: {
+          message: "Play next song",
+        },
+      })
+    );
   };
-
 
   const handleLikeSong = (songId: string) => {
     setSongQueue(
@@ -218,6 +221,7 @@ export default function MusicRoomDashboard() {
   };
 
   const sortedSongQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
+  console.log("iscreator: ",isCreator)
 
   return (
     <div className="w-full h-full bg-[#e3e7d7] rounded-xl overflow-hidden border border-[#2E3F3C] shadow-lg">
@@ -324,22 +328,21 @@ export default function MusicRoomDashboard() {
                       {currentSong.likes}
                     </span>
                   </div>
-                  <MusicPlayer
-                    currentSong={currentSong}
-                  />
+                  <MusicPlayer currentSong={currentSong} />
                 </div>
               </div>
             </Card>
 
             {/* Next Button */}
-            <Button
-              onClick={playNextMessage
-              }
-              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
-            >
-              <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              PLAY NEXT
-            </Button>
+            {isCreator && (
+              <Button
+                onClick={playNextMessage}
+                className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
+              >
+                <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                PLAY NEXT
+              </Button>
+            )}
 
             {/* Add Song Input */}
             <div className="w-full max-w-md flex flex-col sm:flex-row gap-2">
@@ -368,7 +371,7 @@ export default function MusicRoomDashboard() {
             <ScrollArea className="h-full">
               <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {chatMessages.length > 0 ? (
-                  [...chatMessages].reverse().map((msg, index) => (
+                  [...chatMessages].map((msg, index) => (
                     <div key={index} className="flex flex-col">
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <Avatar className="h-5 w-5 sm:h-6 sm:w-6">

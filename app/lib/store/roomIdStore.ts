@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface roomIdStore {
   roomId: string;
@@ -30,6 +31,10 @@ interface roomStore {
   room: room;
   setRoom: (room: room) => void;
 }
+interface isCreator {
+  isCreator: boolean;
+  setIsCreator: (isCreator: boolean) => void;
+}
 
 export const useRoomIdStore = create<roomIdStore>((set) => ({
   roomId: "",
@@ -46,3 +51,15 @@ export const useRoomStore = create<roomStore>((set) => ({
   },
   setRoom: (room) => set({ room }),
 }));
+
+export const useIsCreator = create<isCreator>()(
+  persist(
+    (set) => ({
+      isCreator: false,
+      setIsCreator: (isCreator: boolean) => set({ isCreator }),
+    }),
+    {
+      name: "isCreator-store",
+    }
+  )
+);

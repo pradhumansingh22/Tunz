@@ -4,7 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { useRoomIdStore, useRoomStore } from "../lib/store/roomIdStore";
+import { useIsCreator, useRoomIdStore, useRoomStore } from "../lib/store/roomIdStore";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -20,12 +20,14 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   const [mode, setMode] = useState<"select" | "create" | "join">("select");
   const [value, setValue] = useState("");
   const router = useRouter();
-
+  const { setIsCreator } = useIsCreator();
   const handleCreateRoom = async () => {
     const response = await axios.post("api/room", { roomId });
     if (response.data) {
       const room = response.data.room;
       setRoom(room);
+      console.log("is creator res: ", response.data.isCreator);
+      setIsCreator(response.data.isCreator);
       const createdRoomId = response.data.room.id;
       router.push(`room/${createdRoomId}`);
     } else {
@@ -37,6 +39,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   const handleJoinRoom = async () => {
     const response = await axios.get(`/api/room/?roomId=${joinRoomId}`);
     if (response.data.room) {
+      setIsCreator(response.data.isAdmin);
       const id = response.data.room.id;
       router.push(`/room/${id}`);
     } else {

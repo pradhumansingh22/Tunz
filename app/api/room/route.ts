@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   const { roomId } = await req.json();
 
   if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
+  
 
   try {
     const room = await prismaClient.room.create({
