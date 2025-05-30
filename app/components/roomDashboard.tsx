@@ -98,8 +98,7 @@ export default function MusicRoomDashboard() {
           break;
 
         case "songQueue":
-          // What the heck am I supposed to do here
-          // Hair dryer and all the essentials are here.
+          
           // Handle showing the new Queue
           break;
 

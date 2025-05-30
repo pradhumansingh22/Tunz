@@ -13,6 +13,14 @@ export async function POST(req: NextRequest) {
 
   if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
   
+  const existingRoom = await prismaClient.room.findFirst({
+    where: {
+      roomId
+    }
+  });
+  if (existingRoom) {
+    return NextResponse.json("Room already exists with this ID", { status: 409 })
+  }
 
   try {
     const room = await prismaClient.room.create({

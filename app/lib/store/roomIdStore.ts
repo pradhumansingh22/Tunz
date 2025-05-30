@@ -6,11 +6,11 @@ interface roomIdStore {
   setRoomId: (roomId: string) => void;
 }
 
-export interface Stream {
+export interface Song {
   id: string;
   url: string;
   extractedId: string;
-  title: string;
+  title: string;     
   smallImg: string;
   bigImg: string;
   active: Boolean;
@@ -24,13 +24,13 @@ export interface room {
   creatorId: string;
   roomId: string;
   messages: string[];
-  streams: Stream[];
+  streams: Song[];
 }
-
 interface roomStore {
-  room: room;
+  room: room; 
   setRoom: (room: room) => void;
 }
+
 interface isCreator {
   isCreator: boolean;
   setIsCreator: (isCreator: boolean) => void;
@@ -53,8 +53,8 @@ export const useRoomStore = create<roomStore>((set) => ({
 }));
 
 export const useIsCreator = create<isCreator>()(
-  persist(
-    (set) => ({
+  persist( 
+    (set) => ({ 
       isCreator: false,
       setIsCreator: (isCreator: boolean) => set({ isCreator }),
     }),
