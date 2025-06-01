@@ -7,15 +7,14 @@ export const Appbar = () => {
   const { data: session, status } = useSession();
     const router = useRouter();
 
-  if(status === "loading")return <div>loading...</div>
+  if(status === "loading") return <div>loading...</div>
   console.log("session loaded", session)
 
   const user = session?.user;
-  
 
   console.log(user)
   console.log(status)
-  console.log("Image",user?.image)
+  console.log("Image", user?.image);
 
   const handleClick = async() => {
     user ? await signOut() : router.push("/api/auth/signin");
