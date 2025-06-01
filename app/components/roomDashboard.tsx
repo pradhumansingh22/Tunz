@@ -61,8 +61,8 @@ export default function MusicRoomDashboard() {
   useEffect(() => {
     const getData = async () => {
       const [chatResponse, songResponse] = await Promise.all([
-        axios.get(`http://localhost:8080/room/${roomId}/messages`),
-        axios.get(`http://localhost:8080/room/${roomId}/songs`),
+        axios.get(`https://tunz-server.up.railway.app/room/${roomId}/messages`),
+        axios.get(`https://tunz-server.up.railway.app/room/${roomId}/songs`),
       ]);
 
       if (chatResponse.data.errors || songResponse.data.error) {
@@ -74,7 +74,7 @@ export default function MusicRoomDashboard() {
     };
     getData();
 
-    const newSocket = new WebSocket("ws://localhost:8080");
+    const newSocket = new WebSocket("ws://tunz-server.up.railway.app");
     newSocket.onopen = () => {
       console.log("Connection established to the WebSocket server.");
       newSocket.send(
@@ -95,11 +95,6 @@ export default function MusicRoomDashboard() {
         case "addSong":
           console.log("Song Data:", parsed.messageData);
           setSongQueue((prev) => [...prev, parsed.messageData]);
-          break;
-
-        case "songQueue":
-          
-          // Handle showing the new Queue
           break;
 
         case "playNext":

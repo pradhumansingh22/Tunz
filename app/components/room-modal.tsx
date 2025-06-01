@@ -31,7 +31,6 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
     try {
       setLoading(true);
       const response = await axios.post("api/room", { roomId });
-
       const room = response.data.room;
       setRoom(room);
       console.log("is creator res: ", response.data.isCreator);
