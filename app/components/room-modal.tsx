@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Divide, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import {
@@ -67,8 +67,8 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let rawInput = e.target.value.replace(/[-\s]/g, "");
-    let formatted = rawInput.match(/.{1,3}/g)?.join("-") || "";
+    const rawInput = e.target.value.replace(/[-\s]/g, "");
+    const formatted = rawInput.match(/.{1,3}/g)?.join("-") || "";
 
     setValue(formatted);
     setRoomId(formatted);

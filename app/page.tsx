@@ -11,7 +11,7 @@ export default async function HomePage() {
     <div className="overflow-x-hidden">
       <div className="p-2 sm:p-4 box-border">
         <div
-          className = {`${OpenSans.className}relative w-full min-h-screen bg-[url('/bg.png')] bg-cover bg-center rounded-lg sm:rounded-2xl`}
+          className={`${OpenSans.className}relative w-full min-h-screen bg-[url('/bg.png')] bg-cover bg-center rounded-lg sm:rounded-2xl`}
         >
           <Appbar />
           <div className="pt-8 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-8 md:px-12 lg:px-20 pb-36 sm:pb-0">
@@ -25,7 +25,7 @@ export default async function HomePage() {
               <h1 className="text-[#2E3F3C] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl my-1 sm:my-2 leading-tight">
                 stay focus
               </h1>
-              
+
               <div className="mt-4 sm:mt-6 space-y-1 hidden sm:block">
                 <p className="text-[#2E3F3C] text-sm md:text-base font-semibold leading-relaxed">
                   Create your own room, invite your friends,
@@ -34,7 +34,8 @@ export default async function HomePage() {
                   and vibe together as everyone adds their favorite tracks
                 </p>
                 <p className="text-[#2E3F3C] text-sm md:text-base font-semibold leading-relaxed">
-                  to the queue. Whether you're hosting a party, chilling with
+                  to the queue. Whether you&#39;re hosting a party, chilling
+                  with
                 </p>
                 <p className="text-[#2E3F3C] text-sm md:text-base font-semibold leading-relaxed">
                   your crew, or discovering new beats, TunZ turns every room

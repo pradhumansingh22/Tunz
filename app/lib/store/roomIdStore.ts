@@ -13,7 +13,7 @@ export interface Song {
   title: string;     
   smallImg: string;
   bigImg: string;
-  active: Boolean;
+  active: boolean;
   upvotes: [];
   userId: string;
   roomId: string;

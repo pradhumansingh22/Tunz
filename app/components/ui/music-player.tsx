@@ -5,7 +5,7 @@ import { Play, Pause } from "lucide-react";
 
 let currentlyPlayingAudio: HTMLAudioElement | null = null;
 let currentlyPlayingId: string | null = null;
-let setPlayingStates: Record<string, (playing: boolean) => void> = {};
+const setPlayingStates: Record<string, (playing: boolean) => void> = {};
 
 export default function MusicPlayer({
   id,

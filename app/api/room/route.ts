@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ room, isAdmin });
   } catch (error) {
+    console.log(error);
     return NextResponse.json("Could not join room", { status: 400 });
   }
 }
@@ -94,6 +95,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json("Room Deleted", { status: 200 });
   } catch (error) {
+    console.log(error);
     return NextResponse.json("Could not delete room", { status: 400 });
   }
 }

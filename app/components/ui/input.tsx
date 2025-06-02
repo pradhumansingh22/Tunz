@@ -4,14 +4,13 @@ export const Input = ({
   value,
   onChange,
   className,
-  onKeyDown
+  onKeyDown,
 }: {
   type?: string;
   placeholder: string;
   value: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onChange: (e: any) => void;
-    onKeyDown?:(e: any) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   className: string;
 }) => {
   return (
@@ -19,9 +18,7 @@ export const Input = ({
       type={type}
       placeholder={placeholder}
       value={value}
-      onChange={
-        onChange
-      }
+      onChange={onChange}
       onKeyDown={onKeyDown}
       className={className}
     />

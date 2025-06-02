@@ -1,8 +1,6 @@
 import { prismaClient } from "@/app/lib/db";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
-//@ts-ignore
-import youtubesearchapi from "youtube-search-api";
 import { search } from "youtube-search-without-api-key";
 
 

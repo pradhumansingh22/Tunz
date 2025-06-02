@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Heart, Music, Send, SkipForward } from "lucide-react";
+import { Music, Send, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -191,20 +191,20 @@ export default function MusicRoomDashboard() {
     );
   };
 
-  const handleLikeSong = (songId: string) => {
-    setSongQueue(
-      songQueue.map((song) => {
-        if (song.id === songId) {
-          return {
-            ...song,
-            likes: song.likedByMe ? song.likes - 1 : song.likes + 1,
-            likedByMe: !song.likedByMe,
-          };
-        }
-        return song;
-      })
-    );
-  };
+  // const handleLikeSong = (songId: string) => {
+  //   setSongQueue(
+  //     songQueue.map((song) => {
+  //       if (song.id === songId) {
+  //         return {
+  //           ...song,
+  //           likes: song.likedByMe ? song.likes - 1 : song.likes + 1,
+  //           likedByMe: !song.likedByMe,
+  //         };
+  //       }
+  //       return song;
+  //     })
+  //   );
+  // };
 
   const formatTime = (date: Date | string) => {
     const parsedDate = new Date(date);
@@ -258,7 +258,7 @@ export default function MusicRoomDashboard() {
                         <span>{song.duration}</span>
                       </div>
                     </div>
-                    <button
+                    {/* {<button
                       onClick={() => handleLikeSong(song.id)}
                       className="flex items-center gap-1 text-xs"
                     >
@@ -270,7 +270,7 @@ export default function MusicRoomDashboard() {
                         }`}
                       />
                       <span className="text-[#2E3F3C]">{song.likes}</span>
-                    </button>
+                    </button>} */}
                   </div>
                 ))
               ) : (
@@ -310,7 +310,7 @@ export default function MusicRoomDashboard() {
                   <p className="text-xs sm:text-sm text-[#2E3F3C]/60">
                     Added by {currentSong.addedBy}
                   </p>
-                  <div className="flex items-center gap-1">
+                  {/* <div className="flex items-center gap-1">
                     <Heart
                       className={`h-3 w-3 sm:h-4 sm:w-4 ${
                         currentSong.likedByMe
@@ -321,7 +321,7 @@ export default function MusicRoomDashboard() {
                     <span className="text-xs text-[#2E3F3C]">
                       {currentSong.likes}
                     </span>
-                  </div>
+                  </div> */}
                   <MusicPlayer currentSong={currentSong} />
                 </div>
               </div>
