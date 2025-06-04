@@ -10,7 +10,7 @@ export interface Song {
   id: string;
   url: string;
   extractedId: string;
-  title: string;     
+  title: string;
   smallImg: string;
   bigImg: string;
   active: boolean;
@@ -26,8 +26,9 @@ export interface room {
   messages: string[];
   streams: Song[];
 }
+
 interface roomStore {
-  room: room; 
+  room: room;
   setRoom: (room: room) => void;
 }
 
@@ -35,6 +36,12 @@ interface isCreator {
   isCreator: boolean;
   setIsCreator: (isCreator: boolean) => void;
 }
+
+interface currentQueueStore {
+  currentSongQueue: Song[];
+  setCurrentSongQueue: (queue: Song[]) => void;
+}
+
 
 export const useRoomIdStore = create<roomIdStore>((set) => ({
   roomId: "",
@@ -53,13 +60,25 @@ export const useRoomStore = create<roomStore>((set) => ({
 }));
 
 export const useIsCreator = create<isCreator>()(
-  persist( 
-    (set) => ({ 
+  persist(
+    (set) => ({
       isCreator: false,
       setIsCreator: (isCreator: boolean) => set({ isCreator }),
     }),
     {
       name: "isCreator-store",
+    }
+  )
+);
+
+export const useCurrentSongQueue = create<currentQueueStore>()(
+  persist(
+    (set) => ({
+      currentSongQueue: [],
+      setCurrentSongQueue: (queue) => set({ currentSongQueue: queue }),
+    }),
+    {
+      name: "current-song-queue", 
     }
   )
 );

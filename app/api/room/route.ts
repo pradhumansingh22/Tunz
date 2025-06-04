@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
       email: session?.user?.email ?? "",
     },
   });
-  const { roomId } = await req.json();
 
+  const { roomId } = await req.json();
   if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
   
   const existingRoom = await prismaClient.room.findFirst({
@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
       roomId
     }
   });
+
   if (existingRoom) {
     return NextResponse.json("Room already exists with this ID", { status: 409 })
   }

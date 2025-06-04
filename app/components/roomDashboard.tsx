@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Music, Send, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
-import { useIsCreator } from "../lib/store/roomIdStore";
+import { useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
-
 
 export interface Song {
   id: string;
@@ -45,6 +43,7 @@ export default function MusicRoomDashboard() {
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [songQueue, setSongQueue] = useState<Song[]>([]);
+  const router = useRouter();
   const [currentSong, setCurrentSong] = useState<Song>({
     id: "0",
     title: "WAVY (OFFICIAL VIDEO) KARAN AUJLA",
@@ -58,6 +57,9 @@ export default function MusicRoomDashboard() {
     url: "https://www.youtube.com/watch?v=XTp5jaRU3Ws",
   });
 
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const queueScrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const getData = async () => {
       const [chatResponse, songResponse] = await Promise.all([
@@ -69,8 +71,8 @@ export default function MusicRoomDashboard() {
         console.error("an error occurred");
       }
 
-      setChatMessages((prev) => [...prev, ...chatResponse.data.messages]);
-      setSongQueue((prev) => [...prev, ...songResponse.data.songs]);
+      setChatMessages(chatResponse.data.messages || []);
+      setSongQueue(songResponse.data.songs || []);
     };
     getData();
 
@@ -97,10 +99,10 @@ export default function MusicRoomDashboard() {
           setSongQueue((prev) => [...prev, parsed.messageData]);
           break;
 
-        case "playNext":
-          console.log("playing next song");
-          handlePlayNext();
-          break;
+        // case "playNext":
+        //   console.log("playing next song");
+        //   handlePlayNext();
+        //   break;
       }
     };
     setSocket(newSocket);
@@ -109,6 +111,18 @@ export default function MusicRoomDashboard() {
       setSocket(null);
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  useEffect(() => {
+    if (queueScrollRef.current) {
+      queueScrollRef.current.scrollTop = queueScrollRef.current.scrollHeight;
+    }
+  }, [songQueue]);
 
   const handleAddSong = async () => {
     if (!songLink.trim()) return;
@@ -164,11 +178,20 @@ export default function MusicRoomDashboard() {
     setChatMessage("");
   };
 
+  const handleExitRoom = () => {
+    socket?.send(JSON.stringify({
+      type: "exit",
+      roomId,
+      messageData: {
+        message:"Exit room"
+      }
+    }));
+    router.push("/");
+  }
+
   const handlePlayNext = () => {
-    console.log("hello");
     setSongQueue((prevQueue) => {
       if (prevQueue.length === 0) return prevQueue;
-      console.log("hi");
 
       const sortedQueue = [...prevQueue].sort((a, b) => b.likes - a.likes);
       const nextSong = sortedQueue[0];
@@ -179,17 +202,17 @@ export default function MusicRoomDashboard() {
     });
   };
 
-  const playNextMessage = () => {
-    socket?.send(
-      JSON.stringify({
-        type: "playNext",
-        roomId: roomId,
-        messageData: {
-          message: "Play next song",
-        },
-      })
-    );
-  };
+  // const playNextMessage = () => {
+  //   socket?.send(
+  //     JSON.stringify({
+  //       type: "playNext",
+  //       roomId: roomId,
+  //       messageData: {
+  //         message: "Play next song",
+  //       },
+  //     })
+  //   );
+  // };
 
   // const handleLikeSong = (songId: string) => {
   //   setSongQueue(
@@ -215,7 +238,7 @@ export default function MusicRoomDashboard() {
   };
 
   const sortedSongQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
-  console.log("iscreator: ",isCreator)
+  console.log("iscreator: ", isCreator);
 
   return (
     <div className="w-full h-full bg-[#e3e7d7] rounded-xl overflow-hidden border border-[#2E3F3C] shadow-lg">
@@ -228,7 +251,10 @@ export default function MusicRoomDashboard() {
             </h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            ref={queueScrollRef}
+            className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
             {" "}
             <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
               {sortedSongQueue.length > 0 ? (
@@ -294,7 +320,8 @@ export default function MusicRoomDashboard() {
                   <img
                     src={
                       currentSong.bigImg ||
-                      "/placeholder.svg?height=200&width=200"
+                      "/placeholder.svg?height=200&width=200" ||
+                      "/placeholder.svg"
                     }
                     alt={currentSong.title}
                     className="w-full h-full object-cover"
@@ -328,15 +355,14 @@ export default function MusicRoomDashboard() {
             </Card>
 
             {/* Next Button */}
-            {isCreator && (
-              <Button
-                onClick={playNextMessage}
-                className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
-              >
-                <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                PLAY NEXT
-              </Button>
-            )}
+
+            <Button
+              onClick={handlePlayNext}
+              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] px-3 sm:px-4 py-1.5 sm:py-2 rounded-md flex items-center text-sm sm:text-base"
+            >
+              <SkipForward className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              PLAY NEXT
+            </Button>
 
             {/* Add Song Input */}
             <div className="w-full max-w-md flex flex-col sm:flex-row gap-2">
@@ -351,6 +377,22 @@ export default function MusicRoomDashboard() {
               </LoadingButton>
             </div>
           </div>
+          <button onClick={handleExitRoom}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="size-8 text-[#2E3F3C] m-2"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Chat Section - Right */}
@@ -362,7 +404,10 @@ export default function MusicRoomDashboard() {
           </div>
 
           <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
+            <div
+              ref={chatScrollRef}
+              className="h-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {chatMessages.length > 0 ? (
                   [...chatMessages].map((msg, index) => (
@@ -393,7 +438,7 @@ export default function MusicRoomDashboard() {
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Chat Input */}

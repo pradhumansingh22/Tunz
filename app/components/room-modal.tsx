@@ -8,7 +8,7 @@ import {
   useIsCreator,
   useRoomIdStore,
   useRoomStore,
-} from "../lib/store/roomIdStore";
+} from "../lib/store/myStore";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 
@@ -52,7 +52,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       setIsCreator(response.data.isAdmin);
       const id = response.data.room.id;
       router.push(`/room/${id}`);
-      setLoading(false);                      //if response->status is 409, show an error msg to enter the id again as it already exists
+      setLoading(false); //if response->status is 409, show an error msg to enter the id again as it already exists
     } else {
       console.error("Some error occured");
     }
@@ -84,7 +84,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
           resetView();
         }
       }}
-    > 
+    >
       <DialogContent className="sm:max-w-md rounded-xl bg-white">
         <DialogHeader>
           {!loading && (
@@ -108,7 +108,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
             </button>
           )}
         </DialogHeader>
-        
+
         <div className="p-4">
           {mode === "select" && (
             <div className="flex flex-col gap-4">
@@ -132,8 +132,8 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
               </div>
             </div>
           )}
-          
-          {loading && ( 
+
+          {loading && (
             <div className="flex flex-col py-4 px-2 justify-center items-center">
               <div role="status">
                 <svg
