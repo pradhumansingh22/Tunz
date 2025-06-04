@@ -76,7 +76,7 @@ export default function MusicRoomDashboard() {
     };
     getData();
 
-    const newSocket = new WebSocket("ws://tunz-server.up.railway.app");
+    const newSocket = new WebSocket("wss://tunz-server.up.railway.app");
     newSocket.onopen = () => {
       console.log("Connection established to the WebSocket server.");
       newSocket.send(
