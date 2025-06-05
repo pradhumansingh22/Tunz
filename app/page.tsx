@@ -3,8 +3,6 @@ import { OpenSans } from "./lib/fonts";
 import { getServerSession } from "next-auth";
 import { JoinButton } from "./components/JoinButton";
 import { Featured } from "./components/featured";
-import { useEffect } from "react";
-import { useCurrentSongQueue } from "./lib/store/myStore";
 
 export default async function HomePage() {
   const session = await getServerSession();
