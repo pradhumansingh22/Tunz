@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
-import { useIsCreator } from "../lib/store/myStore";
+import { useCurrentSongQueue, useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
 
 export interface Song {
@@ -24,6 +24,7 @@ export interface Song {
   likedByMe: boolean;
   url: string;
 }
+
 
 interface ChatMessage {
   user: string;
@@ -42,20 +43,9 @@ export default function MusicRoomDashboard() {
   const [songLink, setSongLink] = useState("");
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [songQueue, setSongQueue] = useState<Song[]>([]);
+  const {currentSong, setCurrentSong, currentSongQueue, setCurrentSongQueue, resetCurrentSongQueue } = useCurrentSongQueue();
   const router = useRouter();
-  const [currentSong, setCurrentSong] = useState<Song>({
-    id: "0",
-    title: "Never Gonna Give You Up",
-    artist: "Rick Astley",
-    duration: "4:32",
-    addedBy: "Bombardino Crocodilo",
-    bigImg:
-      "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
-    likes: 7,
-    likedByMe: true,
-    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-  });
+ 
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const queueScrollRef = useRef<HTMLDivElement>(null);
@@ -72,7 +62,9 @@ export default function MusicRoomDashboard() {
       if (songResponse.data.error) {
         console.error("an error occurred");
       }
-      setSongQueue(songResponse.data.songs || []);
+      setCurrentSongQueue(songResponse.data.songs || []);
+
+      
       //console.log("The value of hasJoined in the function: ", hasJoined);
       // Handle a local current queue
     };
@@ -113,7 +105,7 @@ export default function MusicRoomDashboard() {
 
         case "addSong":
           console.log("Song Data:", parsed.messageData);
-          setSongQueue((prev) => [...prev, parsed.messageData]);
+          setCurrentSongQueue((prev) => [...prev, parsed.messageData]);
           break;
 
         // case "playNext":
@@ -142,7 +134,7 @@ export default function MusicRoomDashboard() {
     if (queueScrollRef.current) {
       queueScrollRef.current.scrollTop = queueScrollRef.current.scrollHeight;
     }
-  }, [songQueue]);
+  }, [currentSongQueue]);
 
   const handleAddSong = async () => {
     if (!songLink.trim()) return;
@@ -198,15 +190,15 @@ export default function MusicRoomDashboard() {
       })
     );
     localStorage.removeItem(`has-joined-${roomId}`);
+    resetCurrentSongQueue();
     router.push("/");
   };
 
   const handlePlayNext = () => {
-    setSongQueue((prevQueue) => {
+    setCurrentSongQueue((prevQueue) => {
       if (prevQueue.length === 0) return prevQueue;
 
-      const sortedQueue = [...prevQueue].sort((a, b) => b.likes - a.likes);
-      const nextSong = sortedQueue[0];
+      const nextSong = currentSongQueue[0];
 
       setCurrentSong(nextSong);
 
@@ -249,7 +241,7 @@ export default function MusicRoomDashboard() {
     });
   };
 
-  const sortedSongQueue = [...songQueue].sort((a, b) => b.likes - a.likes);
+  const sortedSongQueue = [...currentSongQueue].sort((a, b) => b.likes - a.likes);
   console.log("iscreator: ", isCreator);
 
   return (

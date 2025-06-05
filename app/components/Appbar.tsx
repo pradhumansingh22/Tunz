@@ -2,11 +2,17 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useCurrentSongQueue } from "../lib/store/myStore";
+import { useEffect } from "react";
 
 export const Appbar = () => {
   const { data: session, status } = useSession();
   const router = useRouter()
+  const { resetCurrentSongQueue } = useCurrentSongQueue();
 
+  useEffect(() => {
+    resetCurrentSongQueue();
+  }, [resetCurrentSongQueue]);
   const user = session?.user;
 
   console.log(user)

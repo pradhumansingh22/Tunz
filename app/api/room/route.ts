@@ -76,6 +76,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  console.log("hii")
   const session = await getServerSession();
   const user = await prismaClient.user.findFirst({
     where: {
@@ -93,7 +94,7 @@ export async function DELETE(req: NextRequest) {
     });
     if (!id)
       return NextResponse.json({ message: "Invalid room id ", status: 403 });
-
+    console.log("Room Deleted");
     return NextResponse.json("Room Deleted", { status: 200 });
   } catch (error) {
     console.log(error);

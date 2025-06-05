@@ -26,6 +26,25 @@ export async function POST(req: NextRequest) {
   if (!match) return NextResponse.json("Invalid URL", { status: 401 });
 
   const videoId = match[1]
+
+  const room = await prismaClient.room.findFirst({ where: { id:roomId } });
+  if (!room) return NextResponse.json("Room not found", { status: 404 });
+
+  const existingSong = room.songs.find((s) => s === videoId);
+  if (existingSong) {
+    return NextResponse.json("Song already exists in room", { status: 409 });
+  }
+
+  await prismaClient.room.update({
+    where: { id: room.id },
+    data: {
+      songs: {
+        push: videoId,
+      },
+    },
+  });
+
+
   const results = await search(videoId);
   if (!results || results.length === 0) {
     throw new Error("No results found for the given query.");

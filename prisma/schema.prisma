@@ -29,6 +29,7 @@ model Room {
   roomId    String    @default("")
   messages  Message[]
   streams   Stream[]
+  songs     String[]
 }
 
 model Stream {

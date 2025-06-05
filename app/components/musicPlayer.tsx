@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Song } from "./roomDashboard";
 import dynamic from "next/dynamic";
 
@@ -24,6 +24,7 @@ export function MusicPlayer({
   const handlePause = () => {
     setIsPlaying(false);
   };
+
 
   return (
     <div className="flex flex-col items-center justify-center w-full">
