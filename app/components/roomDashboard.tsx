@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
-import { useIsCreator } from "../lib/store/myStore";
+import { useHasJoined, useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
 
 export interface Song {
@@ -34,6 +34,7 @@ interface ChatMessage {
 export default function MusicRoomDashboard() {
   const params = useParams();
   const { isCreator } = useIsCreator();
+  const { hasJoined, setHasJoined } = useHasJoined();
   const roomId = params?.roomId;
   const session = useSession();
   const userName = session.data?.user?.name;
@@ -61,20 +62,32 @@ export default function MusicRoomDashboard() {
   const queueScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const getData = async () => {
-      const [chatResponse, songResponse] = await Promise.all([
-        axios.get(`https://tunz-server.up.railway.app/room/${roomId}/messages`),
-        axios.get(`https://tunz-server.up.railway.app/room/${roomId}/songs`),
-      ]);
+    const getSongs = async () => {
+      const songResponse = await axios.get(
+        `https://tunz-server.up.railway.app/room/${roomId}/songs`
+      );
 
-      if (chatResponse.data.errors || songResponse.data.error) {
+      if (songResponse.data.error) {
         console.error("an error occurred");
       }
-
-      setChatMessages(chatResponse.data.messages || []);
       setSongQueue(songResponse.data.songs || []);
+      // Handle a local current queue
     };
-    getData();
+    if (!hasJoined) {
+      getSongs();
+      setHasJoined(true);
+    }
+
+    const getMessages = async () => {
+      const chatResponse = await axios.get(
+        `https://tunz-server.up.railway.app/room/${roomId}/messages`
+      );
+      if (chatResponse.data.error) {
+        console.log("Some error occured");
+      }
+      setChatMessages(chatResponse.data.messages || []);
+    };
+    getMessages();
 
     const newSocket = new WebSocket("wss://tunz-server.up.railway.app");
     newSocket.onopen = () => {
@@ -179,15 +192,17 @@ export default function MusicRoomDashboard() {
   };
 
   const handleExitRoom = () => {
-    socket?.send(JSON.stringify({
-      type: "exit",
-      roomId,
-      messageData: {
-        message:"Exit room"
-      }
-    }));
+    socket?.send(
+      JSON.stringify({
+        type: "exit",
+        roomId,
+        messageData: {
+          message: "Exit room",
+        },
+      })
+    );
     router.push("/");
-  }
+  };
 
   const handlePlayNext = () => {
     setSongQueue((prevQueue) => {
