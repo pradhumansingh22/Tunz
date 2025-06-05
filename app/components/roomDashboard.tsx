@@ -146,18 +146,7 @@ export default function MusicRoomDashboard() {
         url: songLink,
         addedBy: userName,
       });
-
-      setSongQueue((prevQueue) => {
-        if (prevQueue.length === 0) return prevQueue;
-        console.log("hi");
-
-        const sortedQueue = [...prevQueue].sort((a, b) => b.likes - a.likes);
-        const nextSong = sortedQueue[0];
-
-        setCurrentSong(nextSong);
-
-        return prevQueue.filter((song) => song.id !== nextSong.id);
-      });
+      
       if (res.data) {
         socket?.send(
           JSON.stringify({
