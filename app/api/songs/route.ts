@@ -4,9 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { search } from "youtube-search-without-api-key";
 
 
-const urlRegex =
-  /^(?:(?:https?:)?\/\/)?(?:www\.)?(?:m\.)?(?:youtu(?:be)?\.com\/(?:v\/|embed\/|watch(?:\/|\?v=))|youtu\.be\/)((?:\w|-){11})(?:\S+)?$/;
-
 export async function POST(req: NextRequest) {
   const session = await getServerSession();
   const user = await prismaClient.user.findFirst({
@@ -22,11 +19,13 @@ export async function POST(req: NextRequest) {
   if (!roomId || !url)
     return NextResponse.json("Invalid Room Id or Song Url", { status: 403 });
 
-  const isValidUrl = url.match(urlRegex);
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+  );
 
-  if (!isValidUrl) return NextResponse.json("Invalid URL", { status: 401 });
+  if (!match) return NextResponse.json("Invalid URL", { status: 401 });
 
-  const videoId = url.split("?v=")[1];
+  const videoId = match[1]
   const results = await search(videoId);
   if (!results || results.length === 0) {
     throw new Error("No results found for the given query.");
