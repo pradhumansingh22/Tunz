@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
-import { useHasJoined, useIsCreator } from "../lib/store/myStore";
+import { useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
 
 export interface Song {
@@ -34,7 +34,6 @@ interface ChatMessage {
 export default function MusicRoomDashboard() {
   const params = useParams();
   const { isCreator } = useIsCreator();
-  const { hasJoined, setHasJoined } = useHasJoined();
   const roomId = params?.roomId;
   const session = useSession();
   const userName = session.data?.user?.name;
@@ -47,21 +46,24 @@ export default function MusicRoomDashboard() {
   const router = useRouter();
   const [currentSong, setCurrentSong] = useState<Song>({
     id: "0",
-    title: "WAVY (OFFICIAL VIDEO) KARAN AUJLA",
-    artist: "Karan Aujla",
+    title: "Never Gonna Give You Up",
+    artist: "Rick Astley",
     duration: "4:32",
-    addedBy: "Jhon",
+    addedBy: "Bombardino Crocodilo",
     bigImg:
-      "https://i.ytimg.com/vi/XTp5jaRU3Ws/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCZ8dL9zdBliipvrxmEAXIIsCB3UA",
+      "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
     likes: 7,
     likedByMe: true,
-    url: "https://www.youtube.com/watch?v=XTp5jaRU3Ws",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   });
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const queueScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const joinedKey = `has-joined-${roomId}`;
+    const hasJoined = localStorage.getItem(joinedKey) === "true";
+
     const getSongs = async () => {
       const songResponse = await axios.get(
         `https://tunz-server.up.railway.app/room/${roomId}/songs`
@@ -71,12 +73,14 @@ export default function MusicRoomDashboard() {
         console.error("an error occurred");
       }
       setSongQueue(songResponse.data.songs || []);
+      //console.log("The value of hasJoined in the function: ", hasJoined);
       // Handle a local current queue
     };
     if (!hasJoined) {
       getSongs();
-      setHasJoined(true);
+      localStorage.setItem(joinedKey, "true");
     }
+    //console.log("hasJoined: ", hasJoined);
 
     const getMessages = async () => {
       const chatResponse = await axios.get(
@@ -127,7 +131,10 @@ export default function MusicRoomDashboard() {
 
   useEffect(() => {
     if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      chatScrollRef.current.scrollTo({
+        top: chatScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [chatMessages]);
 
@@ -146,7 +153,7 @@ export default function MusicRoomDashboard() {
         url: songLink,
         addedBy: userName,
       });
-      
+
       if (res.data) {
         socket?.send(
           JSON.stringify({
@@ -190,6 +197,7 @@ export default function MusicRoomDashboard() {
         },
       })
     );
+    localStorage.removeItem(`has-joined-${roomId}`);
     router.push("/");
   };
 
@@ -245,77 +253,75 @@ export default function MusicRoomDashboard() {
   console.log("iscreator: ", isCreator);
 
   return (
-    <div className="w-full h-full bg-[#e3e7d7] rounded-xl overflow-hidden border border-[#2E3F3C] shadow-lg">
-      <div className="grid grid-cols-1 md:grid-cols-12 h-full">
-        {/* Queue Section - Left */}
-        <div className="md:col-span-3 border-b md:border-b-0 md:border-r border-[#2E3F3C] flex flex-col h-[40vh] sm:h-[30vh] md:h-full overflow-hidden">
+    <div className="w-full h-full bg-[#e3e7d7] rounded-xl overflow-auto border border-[#2E3F3C] shadow-lg">
+      <div className="grid grid-cols-1 md:grid-cols-12 h-full overflow-auto">
+        {/* Chat Section - Right */}
+        <div className="order-1 md:order-3 md:col-span-3 border-t md:border-t-0 md:border-l border-[#2E3F3C] flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
           <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
             <h2 className="text-lg sm:text-xl font-bold text-[#2E3F3C]">
-              Song Queue
+              Room Chat
             </h2>
           </div>
 
-          <div
-            ref={queueScrollRef}
-            className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {" "}
-            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-              {sortedSongQueue.length > 0 ? (
-                sortedSongQueue.map((song) => (
-                  <div
-                    key={song.id}
-                    className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
-                      <img
-                        src={
-                          song.bigImg || "/placeholder.svg?height=60&width=60"
-                        }
-                        alt={song.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
-                        {song.title}
-                      </h4>
-                      <p className="text-xs text-[#2E3F3C]/70 break-words">
-                        {song.artist}
-                      </p>
-                      <div className="flex justify-between text-xs text-[#2E3F3C]/60">
-                        <span className="truncate">{song.addedBy}</span>
-                        <span>{song.duration}</span>
+          <div className="flex-1 overflow-hidden">
+            <div
+              ref={chatScrollRef}
+              className="h-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                {chatMessages.length > 0 ? (
+                  [...chatMessages].map((msg, index) => (
+                    <div key={index} className="flex flex-col">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
+                          <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
+                            {msg.user ? msg.user.charAt(0) : "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-xs sm:text-sm text-[#2E3F3C]">
+                          {msg.user}
+                        </span>
+                        <span className="text-[10px] sm:text-xs text-[#2E3F3C]/60">
+                          {msg.time ? formatTime(msg.time) : "??:??"}
+                        </span>
                       </div>
+                      <p className="ml-7 sm:ml-8 text-xs sm:text-sm mt-0.5 sm:mt-1 text-[#2E3F3C]/80 break-words">
+                        {msg.message}
+                      </p>
                     </div>
-                    {/* {<button
-                      onClick={() => handleLikeSong(song.id)}
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Heart
-                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                          song.likedByMe
-                            ? "fill-[#2E3F3C] text-[#2E3F3C]"
-                            : "text-[#2E3F3C]"
-                        }`}
-                      />
-                      <span className="text-[#2E3F3C]">{song.likes}</span>
-                    </button>} */}
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
+                    <Send className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+                    <p className="text-sm">No messages yet</p>
+                    <p className="text-xs">Start the conversation</p>
                   </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
-                  <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
-                  <p className="text-sm">Queue is empty.</p>
-                  <p className="text-xs">Add songs to get started.</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* Chat Input */}
+          <div className="p-3 sm:p-4 border-t border-[#2E3F3C] flex gap-2 flex-shrink-0">
+            <Input
+              placeholder="Type message..."
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 px-2 py-1.5 sm:py-2 w-full text-sm rounded-md"
+            />
+            <Button
+              onClick={handleSendMessage}
+              size="icon"
+              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] h-8 sm:h-10 w-8 sm:w-10 rounded-md flex items-center justify-center flex-shrink-0"
+            >
+              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
+            </Button>
           </div>
         </div>
 
         {/* Main Content - Middle */}
-        <div className="md:col-span-6 flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
+        <div className="order-2 md:col-span-6 flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
           <div className="flex-1 flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 gap-3 sm:gap-4 overflow-auto">
             {/* Current Song */}
             <Card className="w-full max-w-xs sm:max-w-sm flex items-center justify-center bg-[#2E3F3C]/10 border-[#2E3F3C] rounded-md p-3 sm:p-4">
@@ -325,6 +331,8 @@ export default function MusicRoomDashboard() {
                     src={
                       currentSong.bigImg ||
                       "/placeholder.svg?height=200&width=200" ||
+                      "/placeholder.svg" ||
+                      "/placeholder.svg" ||
                       "/placeholder.svg"
                     }
                     alt={currentSong.title}
@@ -399,68 +407,70 @@ export default function MusicRoomDashboard() {
           </button>
         </div>
 
-        {/* Chat Section - Right */}
-        <div className="md:col-span-3 border-t md:border-t-0 md:border-l border-[#2E3F3C] flex flex-col h-[calc(60vh-0px)] sm:h-[calc(70vh-0px)] md:h-full overflow-hidden">
+        {/* Queue Section - Left */}
+        <div className="order-3 md:order-1 md:col-span-3 border-b md:border-b-0 md:border-r border-[#2E3F3C] flex flex-col h-[40vh] sm:h-[30vh] md:h-full overflow-hidden">
           <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
             <h2 className="text-lg sm:text-xl font-bold text-[#2E3F3C]">
-              Room Chat
+              Song Queue
             </h2>
           </div>
 
-          <div className="flex-1 overflow-hidden">
-            <div
-              ref={chatScrollRef}
-              className="h-full overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                {chatMessages.length > 0 ? (
-                  [...chatMessages].map((msg, index) => (
-                    <div key={index} className="flex flex-col">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <Avatar className="h-5 w-5 sm:h-6 sm:w-6">
-                          <AvatarFallback className="bg-[#2E3F3C] text-[#e3e7d7] text-xs">
-                            {msg.user ? msg.user.charAt(0) : "?"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-xs sm:text-sm text-[#2E3F3C]">
-                          {msg.user}
-                        </span>
-                        <span className="text-[10px] sm:text-xs text-[#2E3F3C]/60">
-                          {msg.time ? formatTime(msg.time) : "??:??"}
-                        </span>
-                      </div>
-                      <p className="ml-7 sm:ml-8 text-xs sm:text-sm mt-0.5 sm:mt-1 text-[#2E3F3C]/80 break-words">
-                        {msg.message}
-                      </p>
+          <div
+            ref={queueScrollRef}
+            className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {" "}
+            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+              {sortedSongQueue.length > 0 ? (
+                sortedSongQueue.map((song) => (
+                  <div
+                    key={song.id}
+                    className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
+                  >
+                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
+                      <img
+                        src={
+                          song.bigImg || "/placeholder.svg?height=60&width=60"
+                        }
+                        alt={song.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
-                    <Send className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
-                    <p className="text-sm">No messages yet</p>
-                    <p className="text-xs">Start the conversation</p>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
+                        {song.title}
+                      </h4>
+                      <p className="text-xs text-[#2E3F3C]/70 break-words">
+                        {song.artist}
+                      </p>
+                      <div className="flex justify-between text-xs text-[#2E3F3C]/60">
+                        <span className="truncate">{song.addedBy}</span>
+                        <span>{song.duration}</span>
+                      </div>
+                    </div>
+                    {/* {<button
+                      onClick={() => handleLikeSong(song.id)}
+                      className="flex items-center gap-1 text-xs"
+                    >
+                      <Heart
+                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
+                          song.likedByMe
+                            ? "fill-[#2E3F3C] text-[#2E3F3C]"
+                            : "text-[#2E3F3C]"
+                        }`}
+                      />
+                      <span className="text-[#2E3F3C]">{song.likes}</span>
+                    </button>} */}
                   </div>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
+                  <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
+                  <p className="text-sm">Queue is empty.</p>
+                  <p className="text-xs">Add songs to get started.</p>
+                </div>
+              )}
             </div>
-          </div>
-
-          {/* Chat Input */}
-          <div className="p-3 sm:p-4 border-t border-[#2E3F3C] flex gap-2 flex-shrink-0">
-            <Input
-              placeholder="Type message..."
-              value={chatMessage}
-              onChange={(e) => setChatMessage(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-              className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 px-2 py-1.5 sm:py-2 w-full text-sm rounded-md"
-            />
-            <Button
-              onClick={handleSendMessage}
-              size="icon"
-              className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-[#e3e7d7] h-8 sm:h-10 w-8 sm:w-10 rounded-md flex items-center justify-center flex-shrink-0"
-            >
-              <Send className="h-3 w-3 sm:h-4 sm:w-4" />
-            </Button>
           </div>
         </div>
       </div>

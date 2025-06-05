@@ -42,10 +42,6 @@ interface currentQueueStore {
   setCurrentSongQueue: (queue: Song[]) => void;
 }
 
-interface hasJoinedStore {
-  hasJoined: boolean;
-  setHasJoined: (hasJoined: boolean) => void;
-}
 export const useRoomIdStore = create<roomIdStore>((set) => ({
   roomId: "",
   setRoomId: (roomId) => set({ roomId }),
@@ -85,14 +81,3 @@ export const useCurrentSongQueue = create<currentQueueStore>()(
     }
   )
 );
-
-export const useHasJoined = create<hasJoinedStore>()(
-  persist(
-    (set) => ({
-      hasJoined: false,
-      setHasJoined: (hasJoined: boolean) => set({ hasJoined })
-    }), {
-      name:"hasJoined-store"
-    }
-  )
-)
