@@ -24,6 +24,7 @@ export interface Song {
   likes: number;
   likedByMe: boolean;
   url: string;
+  songId: string;
 }
 
 interface ChatMessage {
@@ -53,7 +54,6 @@ export default function MusicRoomDashboard() {
   const router = useRouter();
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
-  const queueScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const joinedKey = `has-joined-${roomId}`;
@@ -134,11 +134,11 @@ export default function MusicRoomDashboard() {
     }
   }, [chatMessages]);
 
-  useEffect(() => {
-    if (queueScrollRef.current) {
-      queueScrollRef.current.scrollTop = queueScrollRef.current.scrollHeight;
-    }
-  }, [currentSongQueue]);
+  // useEffect(() => {
+  //   if (queueScrollRef.current) {
+  //     queueScrollRef.current.scrollTop = queueScrollRef.current.scrollHeight;
+  //   }
+  // }, [currentSongQueue]);
 
   const handleAddSong = async () => {
     if (!songLink.trim()) return;
@@ -198,7 +198,7 @@ export default function MusicRoomDashboard() {
     router.push("/");
   };
 
-  const handlePlayNext = () => {
+  const handlePlayNext = async () => {
     setCurrentSongQueue((prevQueue) => {
       if (prevQueue.length === 0) return prevQueue;
 
@@ -208,6 +208,16 @@ export default function MusicRoomDashboard() {
 
       return prevQueue.filter((song) => song.id !== nextSong.id);
     });
+
+    try {
+      const response = await axios.delete(
+        `/api/songs/?roomId=${roomId}&songId=${currentSong.songId}`
+      );
+      if (response.status === 200) console.log("song deleted");
+    } catch (error) {
+      console.log(error);
+    }
+    
   };
 
   // const playNextMessage = () => {
@@ -404,10 +414,7 @@ export default function MusicRoomDashboard() {
             </svg>
           </button>
         </div>
-        <Queue
-          currentQueue={currentSongQueue}
-          queueScrollRef={queueScrollRef}
-        ></Queue>
+        <Queue currentQueue={currentSongQueue}></Queue>
       </div>
     </div>
   );

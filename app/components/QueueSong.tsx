@@ -14,29 +14,23 @@ export const QueueSong: React.FC<QueueSongProps> = ({ song }) => {
   const { attributes, listeners, setNodeRef, transition, transform } =
     useSortable({ id: song.id });
 
-  const { setCurrentSong, setCurrentSongQueue } =
-    useCurrentSongQueue();
+  // const { setCurrentSong, setCurrentSongQueue } = useCurrentSongQueue();
 
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
   };
 
-    const handlePlaySong = (clickedSong: Song) => {
-      console.log("Playing song:", clickedSong);
-      setCurrentSong(clickedSong);
-      setCurrentSongQueue((prevQueue) =>
-        prevQueue.filter((song) => song.id !== clickedSong.id)
-      );
-      
-    };
-  
-  
+  //   const handlePlaySong = (clickedSong: Song) => {
+  //     console.log("Playing song:", clickedSong);
+  //     setCurrentSong(clickedSong);
+  //     setCurrentSongQueue((prevQueue) =>
+  //       prevQueue.filter((song) => song.id !== clickedSong.id)
+  //     );
+  // };
+
   return (
     <div
-      onClick={() => {
-        handlePlaySong(song);
-      }}
       className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10 touch-none cursor-grab active:cursor-grabbing"
       style={style}
       ref={setNodeRef}

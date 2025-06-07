@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         push: videoId,
       },
     },
-  }); 
+  });
 
 
   const results = await search(videoId);
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       title: videoTitle,
       bigImg: bigImg,
       url,
-      videoId,
+      songId:videoId,
       addedBy
     });
   } catch (error) {
@@ -73,4 +73,33 @@ export async function POST(req: NextRequest) {
   }
 }
 
+export async function DELETE(req:NextRequest) {
+  const session = await getServerSession();
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email: session?.user?.email ?? "",
+    },
+  });
 
+  if (!session || !user) {
+    return NextResponse.json("Unauthenticated", { status: 401 });
+  }
+  const songId = req.nextUrl.searchParams.get("songId") || "";
+  const roomId = req.nextUrl.searchParams.get("roomId") || "";
+
+  const room = await prismaClient.room.findFirst({ where: { id: roomId } });
+  if (!room) return NextResponse.json("Room not found", { status: 404 });
+
+  const existingSong = room.songs.find((s) => s === songId);
+  if (existingSong) {
+    const updatedSongs = room.songs.filter((s) => s !== songId);
+    await prismaClient.room.update({
+      where: { id: roomId },
+      data: {
+        songs: updatedSongs,
+      },
+    });
+    return NextResponse.json("Song deleted", { status: 200 });
+  }
+  return NextResponse.json({messaage:"Unable to delete song"})
+}

@@ -9,10 +9,9 @@ import { QueueSong } from "./QueueSong";
 
 type QueueProps = {
   currentQueue: Song[];
-  queueScrollRef: RefObject<HTMLDivElement | null>;
 };
 
-export const Queue: React.FC<QueueProps> = ({ currentQueue, queueScrollRef }) => {
+export const Queue: React.FC<QueueProps> = ({ currentQueue }) => {
   return (
     <div className="order-3 md:order-1 md:col-span-3 border-b md:border-b-0 md:border-r border-[#2E3F3C] flex flex-col h-[40vh] sm:h-[30vh] md:h-full overflow-hidden">
       <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
@@ -22,7 +21,6 @@ export const Queue: React.FC<QueueProps> = ({ currentQueue, queueScrollRef }) =>
       </div>
 
       <div
-        ref={queueScrollRef}
         className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
