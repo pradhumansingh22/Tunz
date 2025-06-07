@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Music, Send, SkipForward } from "lucide-react";
+import { Send, SkipForward } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card } from "./ui/card";
@@ -12,6 +12,7 @@ import { LoadingButton } from "./ui/loader";
 import { MusicPlayer } from "./musicPlayer";
 import { useCurrentSongQueue, useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
+import { Queue } from "./Queue";
 
 export interface Song {
   id: string;
@@ -24,7 +25,6 @@ export interface Song {
   likedByMe: boolean;
   url: string;
 }
-
 
 interface ChatMessage {
   user: string;
@@ -43,9 +43,14 @@ export default function MusicRoomDashboard() {
   const [songLink, setSongLink] = useState("");
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const {currentSong, setCurrentSong, currentSongQueue, setCurrentSongQueue, resetCurrentSongQueue } = useCurrentSongQueue();
+  const {
+    currentSong,
+    setCurrentSong,
+    currentSongQueue,
+    setCurrentSongQueue,
+    resetCurrentSongQueue,
+  } = useCurrentSongQueue();
   const router = useRouter();
- 
 
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const queueScrollRef = useRef<HTMLDivElement>(null);
@@ -64,7 +69,6 @@ export default function MusicRoomDashboard() {
       }
       setCurrentSongQueue(songResponse.data.songs || []);
 
-      
       //console.log("The value of hasJoined in the function: ", hasJoined);
       // Handle a local current queue
     };
@@ -241,7 +245,6 @@ export default function MusicRoomDashboard() {
     });
   };
 
-  const sortedSongQueue = [...currentSongQueue].sort((a, b) => b.likes - a.likes);
   console.log("iscreator: ", isCreator);
 
   return (
@@ -353,7 +356,10 @@ export default function MusicRoomDashboard() {
                       {currentSong.likes}
                     </span>
                   </div> */}
-                  <MusicPlayer currentSong={currentSong} handlePlayNext={handlePlayNext} />
+                  <MusicPlayer
+                    currentSong={currentSong}
+                    handlePlayNext={handlePlayNext}
+                  />
                 </div>
               </div>
             </Card>
@@ -398,73 +404,10 @@ export default function MusicRoomDashboard() {
             </svg>
           </button>
         </div>
-
-        {/* Queue Section - Left */}
-        <div className="order-3 md:order-1 md:col-span-3 border-b md:border-b-0 md:border-r border-[#2E3F3C] flex flex-col h-[40vh] sm:h-[30vh] md:h-full overflow-hidden">
-          <div className="p-3 sm:p-4 border-b border-[#2E3F3C] flex-shrink-0">
-            <h2 className="text-lg sm:text-xl font-bold text-[#2E3F3C]">
-              Song Queue
-            </h2>
-          </div>
-
-          <div
-            ref={queueScrollRef}
-            className="flex-1 overflow-y-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {" "}
-            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-              {sortedSongQueue.length > 0 ? (
-                sortedSongQueue.map((song) => (
-                  <div
-                    key={song.id}
-                    className="flex items-center gap-2 sm:gap-3 p-2 rounded-md hover:bg-[#2E3F3C]/10"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded overflow-hidden">
-                      <img
-                        src={
-                          song.bigImg || "/placeholder.svg?height=60&width=60"
-                        }
-                        alt={song.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-xs sm:text-sm break-words text-[#2E3F3C]">
-                        {song.title}
-                      </h4>
-                      <p className="text-xs text-[#2E3F3C]/70 break-words">
-                        {song.artist}
-                      </p>
-                      <div className="flex justify-between text-xs text-[#2E3F3C]/60">
-                        <span className="truncate">{song.addedBy}</span>
-                        <span>{song.duration}</span>
-                      </div>
-                    </div>
-                    {/* {<button
-                      onClick={() => handleLikeSong(song.id)}
-                      className="flex items-center gap-1 text-xs"
-                    >
-                      <Heart
-                        className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                          song.likedByMe
-                            ? "fill-[#2E3F3C] text-[#2E3F3C]"
-                            : "text-[#2E3F3C]"
-                        }`}
-                      />
-                      <span className="text-[#2E3F3C]">{song.likes}</span>
-                    </button>} */}
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-[#2E3F3C]/60">
-                  <Music className="h-6 w-6 sm:h-8 sm:w-8 mb-2" />
-                  <p className="text-sm">Queue is empty.</p>
-                  <p className="text-xs">Add songs to get started.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <Queue
+          currentQueue={currentSongQueue}
+          queueScrollRef={queueScrollRef}
+        ></Queue>
       </div>
     </div>
   );
