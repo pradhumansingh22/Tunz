@@ -353,7 +353,7 @@ export default function MusicRoomDashboard() {
                       {currentSong.likes}
                     </span>
                   </div> */}
-                  <MusicPlayer currentSong={currentSong} />
+                  <MusicPlayer currentSong={currentSong} handlePlayNext={handlePlayNext} />
                 </div>
               </div>
             </Card>

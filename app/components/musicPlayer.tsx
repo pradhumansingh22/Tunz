@@ -10,10 +10,11 @@ const ReactPlayer = dynamic(() => import("react-player"), {
 
 interface PlayerProps {
   currentSong: Song;
+  handlePlayNext: () => void;
 }
 
 export function MusicPlayer({
-  currentSong
+  currentSong,handlePlayNext
 }: PlayerProps) {
   const playerRef = useRef<typeof ReactPlayer>(null);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -32,6 +33,7 @@ export function MusicPlayer({
         ref={playerRef}
         url={currentSong.url}
         playing={isPlaying}
+        onEnded={handlePlayNext}
         controls={false}
         width="0"
         height="0"
