@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Song } from "@/app/components/roomDashboard";
 
-
 interface roomIdStore {
   roomId: string;
   setRoomId: (roomId: string) => void;
@@ -25,7 +24,6 @@ interface isCreator {
   isCreator: boolean;
   setIsCreator: (isCreator: boolean) => void;
 }
-
 
 export const useRoomIdStore = create<roomIdStore>((set) => ({
   roomId: "",
@@ -63,23 +61,25 @@ interface CurrentQueueStore {
   resetCurrentSongQueue: () => void;
 }
 
+const NeverGonnaGiveYouUp = {
+  id: "0",
+  title: "Never Gonna Give You Up",
+  artist: "Rick Astley",
+  duration: "4:32",
+  addedBy: "Bombardino Crocodilo",
+  bigImg:
+    "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
+  likes: 7,
+  likedByMe: true,
+  url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  songId: "dQw4w9WgXcQ",
+};
+
 export const useCurrentSongQueue = create<CurrentQueueStore>()(
   persist(
     (set, get) => ({
       currentSongQueue: [],
-      currentSong: {
-        id: "0",
-        title: "Never Gonna Give You Up",
-        artist: "Rick Astley",
-        duration: "4:32",
-        addedBy: "Bombardino Crocodilo",
-        bigImg:
-          "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
-        likes: 7,
-        likedByMe: true,
-        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      },
-
+      currentSong: NeverGonnaGiveYouUp,
       setCurrentSongQueue: (queueOrFn) => {
         const currentQueue = get().currentSongQueue;
         const nextQueue =
@@ -90,18 +90,7 @@ export const useCurrentSongQueue = create<CurrentQueueStore>()(
       setCurrentSong: (song) => set({ currentSong: song }),
       resetCurrentSongQueue: () =>
         set({
-          currentSong: {
-            id: "0",
-            title: "Never Gonna Give You Up",
-            artist: "Rick Astley",
-            duration: "4:32",
-            addedBy: "Bombardino Crocodilo",
-            bigImg:
-              "https://i.ytimg.com/vi/dQw4w9WgXcQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDX3LgTmArIBIk6uvvz4y5p95MOcg",
-            likes: 7,
-            likedByMe: true,
-            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-          },
+          currentSong: NeverGonnaGiveYouUp,
           currentSongQueue: [],
         }),
     }),
@@ -110,4 +99,3 @@ export const useCurrentSongQueue = create<CurrentQueueStore>()(
     }
   )
 );
-

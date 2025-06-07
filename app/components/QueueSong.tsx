@@ -4,7 +4,6 @@ import React from "react";
 import { Song } from "./roomDashboard";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useCurrentSongQueue } from "../lib/store/myStore";
 
 type QueueSongProps = {
   song: Song;

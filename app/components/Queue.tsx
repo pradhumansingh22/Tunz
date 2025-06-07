@@ -1,6 +1,6 @@
 "use client"
 
-import React, { RefObject } from "react";
+import React from "react";
 import { Music } from "lucide-react";
 import { Song } from "./roomDashboard";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
