@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  console.log("hii")
+  console.log("hii") //await prismaCleint
   const session = await getServerSession();
   const user = await prismaClient.user.findFirst({
     where: {

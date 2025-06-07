@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
         push: videoId,
       },
     },
-  });
+  }); 
 
 
   const results = await search(videoId);
@@ -72,3 +72,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json("Could not add song", { status: 400 });
   }
 }
+
+
