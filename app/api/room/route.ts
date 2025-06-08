@@ -12,15 +12,17 @@ export async function POST(req: NextRequest) {
 
   const { roomId } = await req.json();
   if (!user) return NextResponse.json("Unauthenticated", { status: 401 });
-  
+
   const existingRoom = await prismaClient.room.findFirst({
     where: {
-      roomId
-    }
+      roomId,
+    },
   });
 
   if (existingRoom) {
-    return NextResponse.json("Room already exists with this ID", { status: 409 })
+    return NextResponse.json("Room already exists with this ID", {
+      status: 409,
+    });
   }
 
   try {
@@ -62,9 +64,11 @@ export async function GET(req: NextRequest) {
         roomId: roomId,
       },
     });
-    console.log("Here is the room id", roomId);
     if (!roomId || !room)
-      return NextResponse.json({ message: "Invalid room id ", status: 403 });
+      return NextResponse.json(
+        { message: "Invalid room id " },
+        { status: 403 }
+      );
 
     const isAdmin = room.creatorId === user.id;
 
@@ -76,7 +80,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  console.log("hii") 
+  console.log("hii");
   const session = await getServerSession();
   const user = await prismaClient.user.findFirst({
     where: {

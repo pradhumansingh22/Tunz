@@ -13,6 +13,7 @@ import { MusicPlayer } from "./musicPlayer";
 import { useCurrentSongQueue, useIsCreator } from "../lib/store/myStore";
 import axios from "axios";
 import { Queue } from "./Queue";
+import ErrorAlert from "./ui/ErrorAlert";
 
 export interface Song {
   id: string;
@@ -44,6 +45,7 @@ export default function MusicRoomDashboard() {
   const [songLink, setSongLink] = useState("");
   const [chatMessage, setChatMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showError, setShowError] = useState(false);
   const {
     currentSong,
     setCurrentSong,
@@ -68,9 +70,6 @@ export default function MusicRoomDashboard() {
         console.error("an error occurred");
       }
       setCurrentSongQueue(songResponse.data.songs || []);
-
-      //console.log("The value of hasJoined in the function: ", hasJoined);
-      // Handle a local current queue
     };
     if (!hasJoined) {
       getSongs();
@@ -111,11 +110,6 @@ export default function MusicRoomDashboard() {
           console.log("Song Data:", parsed.messageData);
           setCurrentSongQueue((prev) => [...prev, parsed.messageData]);
           break;
-
-        // case "playNext":
-        //   console.log("playing next song");
-        //   handlePlayNext();
-        //   break;
       }
     };
     setSocket(newSocket);
@@ -159,11 +153,13 @@ export default function MusicRoomDashboard() {
           })
         );
       }
-    } catch (error) {
-      console.log("Error adding song", error);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response.status === 409 || 401) setShowError(true);
+    } finally {
+      setSongLink("");
+      setLoading(false);
     }
-    setSongLink("");
-    setLoading(false);
   };
 
   const handleSendMessage = () => {
@@ -217,7 +213,6 @@ export default function MusicRoomDashboard() {
     } catch (error) {
       console.log(error);
     }
-    
   };
 
   // const playNextMessage = () => {
@@ -396,6 +391,14 @@ export default function MusicRoomDashboard() {
                 Add Song
               </LoadingButton>
             </div>
+            {showError && (
+              <ErrorAlert
+                onClose={() => {
+                  setShowError(false);
+                }}
+                message="Invalid URL or Song already exists in the queue"
+              ></ErrorAlert>
+            )}
           </div>
           <button onClick={handleExitRoom}>
             <svg

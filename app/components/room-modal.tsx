@@ -11,6 +11,7 @@ import {
 } from "../lib/store/myStore";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import ErrorAlert from "./ui/ErrorAlert";
 
 interface RoomModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   const router = useRouter();
   const { setIsCreator } = useIsCreator();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleCreateRoom = async () => {
     try {
@@ -40,24 +42,26 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       setLoading(false);
 
       onClose();
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response.status === 409) setError(true);
       console.log("Some error occurred: ", error);
     }
   };
 
   const handleJoinRoom = async () => {
-    setLoading(true);
-    const response = await axios.get(`/api/room/?roomId=${joinRoomId}`);
-    if (response.data.room) {
-      setIsCreator(response.data.isAdmin);
-      const id = response.data.room.id;
-      router.push(`/room/${id}`);
-      setLoading(false); //if response->status is 409, show an error msg to enter the id again as it already exists
-    } else {
-      console.error("Some error occured");
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/room/?roomId=${joinRoomId}`);
+      if (response.data.room) {
+        setIsCreator(response.data.isAdmin);
+        const id = response.data.room.id;
+        router.push(`/room/${id}`);
+        setLoading(false);
+      } // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error:any) {
+      if (error.response.status === 403 || 400) setError(true);
     }
-
-    onClose();
   };
 
   const resetView = () => {
@@ -133,7 +137,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
             </div>
           )}
 
-          {loading && (
+          {loading && !error && (
             <div className="flex flex-col py-4 px-2 justify-center items-center">
               <div role="status">
                 <svg
@@ -157,6 +161,15 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
             </div>
           )}
 
+          {error && (
+            <ErrorAlert
+              onClose={() => {
+                setError(false);
+                setLoading(false);
+              }}
+              message="Invalid Room Id. Try another Id"
+            ></ErrorAlert>
+          )}
           {!loading && mode === "create" && (
             <div className="flex flex-col gap-4">
               <p className="text-[#2E3F3C] text-sm">
