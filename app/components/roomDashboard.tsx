@@ -43,9 +43,12 @@ export default function MusicRoomDashboard() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [songLink, setSongLink] = useState("");
+  const [searchedSong, setSearchedSong] = useState("");
   const [chatMessage, setChatMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [linkError, setLinkError] = useState(false);
+  const [searchError, setSearchError] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const {
     currentSong,
     setCurrentSong,
@@ -137,7 +140,7 @@ export default function MusicRoomDashboard() {
   const handleAddSong = async () => {
     if (!songLink.trim()) return;
     try {
-      setLoading(true);
+      setLinkLoading(true);
       const res = await axios.post("/api/songs", {
         roomId: roomId,
         url: songLink,
@@ -155,10 +158,10 @@ export default function MusicRoomDashboard() {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      if (error.response.status === 409 || 401) setShowError(true);
+      if (error.response.status === 409 || 401) setLinkError(true);
     } finally {
       setSongLink("");
-      setLoading(false);
+      setLinkLoading(false);
     }
   };
 
@@ -212,6 +215,35 @@ export default function MusicRoomDashboard() {
       if (response.status === 200) console.log("song deleted");
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const handleSearchSong = async () => {
+    if (!searchedSong.trim()) return;
+    try {
+      setSearchLoading(true);
+      const res = await axios.post("/api/search", {
+        roomId: roomId,
+        searchedSong: searchedSong,
+        addedBy: userName,
+      });
+
+      if (res.data) {
+        socket?.send(
+          JSON.stringify({
+            type: "addSong",
+            roomId,
+            messageData: res.data,
+          })
+        );
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response.status === 409 || 401 || 403 || 404 || 400)
+        setSearchError(true);
+    } finally {
+      setSearchedSong("");
+      setSearchLoading(false);
     }
   };
 
@@ -387,16 +419,35 @@ export default function MusicRoomDashboard() {
                 onChange={(e) => setSongLink(e.target.value)}
                 className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 rounded-md px-3 py-1.5 sm:py-2 w-full text-sm"
               />
-              <LoadingButton onClick={handleAddSong} loading={loading}>
+              <LoadingButton onClick={handleAddSong} loading={linkLoading}>
                 Add Song
               </LoadingButton>
             </div>
-            {showError && (
+            {linkError && (
               <ErrorAlert
                 onClose={() => {
-                  setShowError(false);
+                  setLinkError(false);
                 }}
                 message="Invalid URL or Song already exists in the queue"
+              ></ErrorAlert>
+            )}
+            <div className="w-full max-w-md flex flex-col sm:flex-row gap-2">
+              <Input
+                placeholder="Enter song name..."
+                value={searchedSong}
+                onChange={(e) => setSearchedSong(e.target.value)}
+                className="bg-white border-[#2E3F3C] focus-visible:ring-[#2E3F3C] focus-visible:ring-1 rounded-md px-3 py-1.5 sm:py-2 w-full text-sm"
+              />
+              <LoadingButton onClick={handleSearchSong} loading={searchLoading}>
+                Add Song
+              </LoadingButton>
+            </div>
+            {searchError && (
+              <ErrorAlert
+                onClose={() => {
+                  setSearchError(false);
+                }}
+                message="Song already exists in the queue or Invalid input"
               ></ErrorAlert>
             )}
           </div>

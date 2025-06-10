@@ -21,6 +21,7 @@ model User {
   streams  Stream[]
   upvotes  Upvotes[]
   messaged Message[]
+  calls    Int       @default(0)
 }
 
 model Room {
@@ -30,6 +31,7 @@ model Room {
   messages  Message[]
   streams   Stream[]
   songs     String[]
+  createdAt DateTime  @default(now())
 }
 
 model Stream {
