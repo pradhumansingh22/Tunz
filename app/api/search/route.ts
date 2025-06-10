@@ -15,6 +15,12 @@ export async function POST(req: NextRequest) {
   if (!session || !user) {
     return NextResponse.json("Unauthenticated", { status: 401 });
   }
+
+  const callsPerDay = user.calls;
+  if (callsPerDay >= 10) {
+    return NextResponse.json("Reached limit of No of searches per day", { status: 429 });
+  }
+
   const { roomId, searchedSong, addedBy } = await req.json();
   if (!roomId || !searchedSong)
     return NextResponse.json("Invalid Room Id or Song Name", { status: 403 });

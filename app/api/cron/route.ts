@@ -1,6 +1,9 @@
 import { prismaClient } from "@/app/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
+export const config = {
+  schedule: "0 0 * * *", 
+};
 export async function GET(req: NextRequest) {
   const isVercelCron = req.headers.get("x-vercel-cron");
 
