@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       const bigImg = firstResult.snippet.thumbnails.high.url;
       const url = `https://www.youtube.com/watch?v=${videoId}`;
 
-      const existingSong = room.songs.find((s) => s === videoId);
+      const existingSong = room.songs?.find((s) => s === videoId);
       if (existingSong) {
         return NextResponse.json("Song already exists in room", {
           status: 409,
@@ -58,6 +58,14 @@ export async function POST(req: NextRequest) {
           },
         },
       });
+
+      await prismaClient.user.update({
+        where: { id: user.id },
+        data: {
+          calls: { increment: 1 },
+        },
+      });
+      
       return NextResponse.json({
         message: "Added Song",
         id: crypto.randomUUID(),

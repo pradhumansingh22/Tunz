@@ -30,7 +30,7 @@ model Room {
   roomId    String    @default("")
   messages  Message[]
   streams   Stream[]
-  songs     String[]
+  songs     String[]  @default([])
   createdAt DateTime  @default(now())
 }
 
