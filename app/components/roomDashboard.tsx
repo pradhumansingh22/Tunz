@@ -34,6 +34,8 @@ interface ChatMessage {
   time: Date | string;
 }
 
+//Implement no of users in a room.
+
 export default function MusicRoomDashboard() {
   const params = useParams();
   const { isCreator } = useIsCreator();
