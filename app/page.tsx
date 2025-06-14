@@ -18,13 +18,13 @@ export default async function HomePage() {
           <div className="pt-8 sm:pt-12 md:pt-16 lg:pt-20 px-4 sm:px-8 md:px-12 lg:px-20 pb-36 sm:pb-0">
             <div className="max-w-4xl">
               <h1 className="text-[#2E3F3C] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl my-1 sm:my-2 leading-tight">
-                Melodies
+                Where music
               </h1>
               <h1 className="text-[#2E3F3C] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl my-1 sm:my-2 leading-tight">
-                that help you
+                meets friends
               </h1>
               <h1 className="text-[#2E3F3C] font-bold text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl my-1 sm:my-2 leading-tight">
-                stay focus
+                in real time.
               </h1>
 
               <div className="mt-4 sm:mt-6 space-y-1 hidden sm:block">
