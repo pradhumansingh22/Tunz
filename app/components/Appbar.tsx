@@ -32,10 +32,10 @@ export const Appbar = () => {
       <div className="flex justify-between items-center pt-4 px-4 sm:px-6 md:px-8 lg:px-10">
         <div className="flex items-center">
           <div className="h-8 w-8 rounded-full bg-[#2E3F3C] font-semibold text-white flex justify-center items-center">
-            T
+            G
           </div>
           <div className="text-[#2E3F3C] font-bold ml-2 text-lg sm:text-xl">
-            TunZ
+            GrooveHoue
           </div>
         </div>
 
@@ -56,10 +56,10 @@ export const Appbar = () => {
         <div className="flex justify-between items-center pt-4 px-4 sm:px-6 md:px-8 lg:px-10">
           <div className="flex items-center">
             <div className="h-8 w-8 rounded-full bg-[#2E3F3C] font-semibold text-white flex justify-center items-center">
-              T
+              G
             </div>
             <div className="text-[#2E3F3C] font-bold ml-2 text-lg sm:text-xl">
-              TunZ
+              GrooveHouse
             </div>
           </div>
 

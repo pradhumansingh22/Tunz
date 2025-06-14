@@ -68,7 +68,7 @@ export default function MusicRoomDashboard() {
 
     const getSongs = async () => {
       const songResponse = await axios.get(
-        `https://tunz-server.up.railway.app/room/${roomId}/songs`
+        `https://groovehouse-server.up.railway.app/room/${roomId}/songs`
       );
 
       if (songResponse.data.error) {
@@ -84,7 +84,7 @@ export default function MusicRoomDashboard() {
 
     const getMessages = async () => {
       const chatResponse = await axios.get(
-        `https://tunz-server.up.railway.app/room/${roomId}/messages`
+        `https://groovehouse-server.up.railway.app/room/${roomId}/messages`
       );
       if (chatResponse.data.error) {
         console.log("Some error occured");
@@ -93,7 +93,7 @@ export default function MusicRoomDashboard() {
     };
     getMessages();
 
-    const newSocket = new WebSocket("wss://tunz-server.up.railway.app");
+    const newSocket = new WebSocket("wss://groovehouse-server.up.railway.app");
     newSocket.onopen = () => {
       console.log("Connection established to the WebSocket server.");
       newSocket.send(

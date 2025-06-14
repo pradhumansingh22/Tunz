@@ -5,7 +5,7 @@ import { Providers } from "./Providers";
 
 
 export const metadata: Metadata = {
-  title: "TunZ",
+  title: "GrooveHouse",
   description:
     "A collaborative music room platform where users can join rooms and queue songs to enjoy together in real-time.",
 };
