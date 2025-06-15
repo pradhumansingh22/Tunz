@@ -2,16 +2,18 @@
 
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useCurrentSongQueue } from "../lib/store/myStore";
+import { useCurrentSongQueue, useRoomIdStore } from "../lib/store/myStore";
 import { useEffect } from "react";
 
 export const Appbar = () => {
   const { data: session, status } = useSession();
+  const { roomId } = useRoomIdStore();
   const router = useRouter()
   const { resetCurrentSongQueue } = useCurrentSongQueue();
 
   useEffect(() => {
     resetCurrentSongQueue();
+    localStorage.removeItem(`has-joined-${roomId}`)
   }, [resetCurrentSongQueue]);
   const user = session?.user;
 

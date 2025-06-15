@@ -25,11 +25,17 @@ interface isCreator {
   setIsCreator: (isCreator: boolean) => void;
 }
 
-export const useRoomIdStore = create<roomIdStore>((set) => ({
-  roomId: "",
-  setRoomId: (roomId) => set({ roomId }),
-}));
-
+export const useRoomIdStore = create<roomIdStore>()(
+  persist(
+    (set) => ({
+      roomId: "",
+      setRoomId: (roomId) => set({ roomId }),
+    }),
+    {
+      name: "room-id-storage", 
+    }
+  )
+);
 export const useRoomStore = create<roomStore>((set) => ({
   room: {
     id: "",
