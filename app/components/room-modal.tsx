@@ -56,6 +56,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       if (response.data.room) {
         setIsCreator(response.data.isAdmin);
         const id = response.data.room.id;
+        localStorage.setItem(`has-joined-${id}`, "true");
         router.push(`/room/${id}`);
         setLoading(false);
       } // eslint-disable-next-line @typescript-eslint/no-explicit-any
