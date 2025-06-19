@@ -3,8 +3,8 @@ import { persist } from "zustand/middleware";
 import { Song } from "@/app/components/roomDashboard";
 
 interface roomIdStore {
-  roomId: string;
-  setRoomId: (roomId: string) => void;
+  createRoomId: string;
+  setCreateRoomId: (createRoomId: string) => void;
 }
 
 export interface room {
@@ -38,8 +38,8 @@ export const useJoinedStore = create<JoinedState>((set) => ({
 export const useRoomIdStore = create<roomIdStore>()(
   persist(
     (set) => ({
-      roomId: "",
-      setRoomId: (roomId) => set({ roomId }),
+      createRoomId: "",
+      setCreateRoomId: (createRoomId) => set({ createRoomId }),
     }),
     {
       name: "room-id-storage",

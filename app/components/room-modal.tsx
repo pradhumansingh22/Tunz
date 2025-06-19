@@ -20,7 +20,7 @@ interface RoomModalProps {
 }
 
 export function RoomModal({ isOpen, onClose }: RoomModalProps) {
-  const { roomId, setRoomId } = useRoomIdStore();
+  const { createRoomId, setCreateRoomId } = useRoomIdStore();
   const { setRoom } = useRoomStore();
   const [joinRoomId, setjoinRoomId] = useState("");
   const [mode, setMode] = useState<"select" | "create" | "join">("select");
@@ -34,15 +34,15 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   const handleCreateRoom = async () => {
     try {
       setLoading(true);
-      const response = await axios.post("api/room", { roomId });
+      const response = await axios.post("api/room", { roomId:createRoomId });
       const room = response.data.room;
       setRoom(room);
      // console.log("is creator res: ", response.data.isCreator);
       setIsCreator(response.data.isCreator);
-      const createdRoomId = response.data.room.id;
-      localStorage.setItem(`has-joined-${createdRoomId}`, "true");
+      const id = response.data.room.id;
+      localStorage.setItem(`has-joined-${id}`, "true");
       setHasJustJoined(true);
-      router.push(`room/${createdRoomId}`);
+      router.push(`room/${id}`);
       setTimeout(() => {
         setLoading(false);
         onClose();
@@ -77,7 +77,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
 
   const resetView = () => {
     setMode("select");
-    setRoomId("");
+    setCreateRoomId("");
     setjoinRoomId("");
   };
 
@@ -86,7 +86,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
     const formatted = rawInput.match(/.{1,3}/g)?.join("-") || "";
 
     setValue(formatted);
-    setRoomId(formatted);
+    setCreateRoomId(formatted);
     setjoinRoomId(formatted);
   };
 
@@ -235,7 +235,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
               <div className="flex flex-col gap-3 mt-2">
                 <Button
                   onClick={handleJoinRoom}
-                  disabled={!roomId.trim()}
+                  disabled={!createRoomId.trim()}
                   className="bg-[#2E3F3C] hover:bg-[#2E3F3C]/90 text-white py-2 rounded-lg disabled:opacity-50"
                 >
                   Join Room

@@ -13,11 +13,13 @@ import { MusicPlayer } from "./musicPlayer";
 import {
   useCurrentSongQueue,
   useJoinedStore,
+  useRoomIdStore,
 } from "../lib/store/myStore";
 import axios from "axios";
 import { Queue } from "./Queue";
 import ErrorAlert from "./ui/ErrorAlert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { CopyButton } from "./ui/copyButton";
 
 export interface Song {
   id: string;
@@ -46,6 +48,7 @@ export default function MusicRoomDashboard() {
   const session = useSession();
   const userName = session.data?.user?.name;
   const [socket, setSocket] = useState<WebSocket | null>(null);
+  const { createRoomId } = useRoomIdStore();
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [songLink, setSongLink] = useState("");
   const [searchedSong, setSearchedSong] = useState("");
@@ -152,7 +155,7 @@ export default function MusicRoomDashboard() {
       newSocket.close();
       setSocket(null);
     };
-  }, [roomId,setCurrentSongQueue,hasJustJoined]);
+  }, [roomId, setCurrentSongQueue, hasJustJoined]);
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -322,7 +325,7 @@ export default function MusicRoomDashboard() {
     });
   };
 
-  //console.log("iscreator: ", isCreator);
+ // console.log("iscreator: ", isCreator);
 
   return (
     <>
@@ -364,6 +367,7 @@ export default function MusicRoomDashboard() {
                   Room Chat
                 </h2>
                 <div className="flex items-center space-x-1 text-[#2E3F3C]">
+                  <CopyButton text={createRoomId}></CopyButton>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
