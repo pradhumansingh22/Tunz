@@ -43,9 +43,11 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       localStorage.setItem(`has-joined-${createdRoomId}`, "true");
       setHasJustJoined(true);
       router.push(`room/${createdRoomId}`);
-      setLoading(false);
-
-      onClose();
+      setTimeout(() => {
+        setLoading(false);
+        onClose();
+      }, 5000);
+      
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response.status === 409) setError(true);
@@ -63,7 +65,9 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
         localStorage.setItem(`has-joined-${id}`, "true");
         setHasJustJoined(true);
         router.push(`/room/${id}`);
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 5000);
       } // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       if (error.response.status === 403 || error.response.status === 400)
