@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import type { Song } from "./roomDashboard";
 import dynamic from "next/dynamic";
 
+
 const ReactPlayer = dynamic(() => import("react-player"), {
   ssr: false,
 });
@@ -16,6 +17,7 @@ interface PlayerProps {
 }
 
 export function MusicPlayer({ currentSong, handlePlayNext }: PlayerProps) {
+  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -36,7 +38,6 @@ export function MusicPlayer({ currentSong, handlePlayNext }: PlayerProps) {
   }) => {
     setCurrentTime(progress.playedSeconds);
   };
-
   const handleDuration = (duration: number) => {
     setDuration(duration);
   };
@@ -204,3 +205,4 @@ export function MusicPlayer({ currentSong, handlePlayNext }: PlayerProps) {
     </div>
   );
 }
+// 9571050008

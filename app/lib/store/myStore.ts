@@ -25,6 +25,16 @@ interface isCreator {
   setIsCreator: (isCreator: boolean) => void;
 }
 
+interface JoinedState {
+  hasJustJoined: boolean;
+  setHasJustJoined: (value: boolean) => void;
+}
+
+export const useJoinedStore = create<JoinedState>((set) => ({
+  hasJustJoined: false,
+  setHasJustJoined: (value) => set({ hasJustJoined: value }),
+}));
+
 export const useRoomIdStore = create<roomIdStore>()(
   persist(
     (set) => ({
@@ -32,7 +42,7 @@ export const useRoomIdStore = create<roomIdStore>()(
       setRoomId: (roomId) => set({ roomId }),
     }),
     {
-      name: "room-id-storage", 
+      name: "room-id-storage",
     }
   )
 );

@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import {
   useIsCreator,
+  useJoinedStore,
   useRoomIdStore,
   useRoomStore,
 } from "../lib/store/myStore";
@@ -28,6 +29,7 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
   const { setIsCreator } = useIsCreator();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const { setHasJustJoined } = useJoinedStore();
 
   const handleCreateRoom = async () => {
     try {
@@ -35,9 +37,11 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       const response = await axios.post("api/room", { roomId });
       const room = response.data.room;
       setRoom(room);
-      console.log("is creator res: ", response.data.isCreator);
+     // console.log("is creator res: ", response.data.isCreator);
       setIsCreator(response.data.isCreator);
       const createdRoomId = response.data.room.id;
+      localStorage.setItem(`has-joined-${createdRoomId}`, "true");
+      setHasJustJoined(true);
       router.push(`room/${createdRoomId}`);
       setLoading(false);
 
@@ -56,11 +60,14 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
       if (response.data.room) {
         setIsCreator(response.data.isAdmin);
         const id = response.data.room.id;
+        localStorage.setItem(`has-joined-${id}`, "true");
+        setHasJustJoined(true);
         router.push(`/room/${id}`);
         setLoading(false);
       } // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error:any) {
-      if (error.response.status === 403 || 400) setError(true);
+    } catch (error: any) {
+      if (error.response.status === 403 || error.response.status === 400)
+        setError(true);
     }
   };
 
@@ -214,6 +221,8 @@ export function RoomModal({ isOpen, onClose }: RoomModalProps) {
                 spellCheck={false}
                 placeholder="Enter Room ID"
                 value={value}
+                maxLength={7}
+                minLength={6}
                 onChange={(e) => {
                   handleInputChange(e);
                 }}

@@ -7,7 +7,6 @@ import { Featured } from "./components/featured";
 export default async function HomePage() {
   const session = await getServerSession();
   
-
   return (
     <div className="overflow-x-hidden">
       <div className="p-2 sm:p-4 box-border">
